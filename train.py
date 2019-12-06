@@ -21,7 +21,7 @@ import torch.optim as optim
 parser = argparse.ArgumentParser()
 parser.add_argument("--epochs", type=int, default=20, help="number of epochs")
 parser.add_argument("--image_folder", type=str, default="data/snowman/images", help="path to dataset")
-parser.add_argument("--batch_size", type=int, default=16, help="size of each image batch")
+parser.add_argument("--batch_size", type=int, default=8, help="size of each image batch")
 parser.add_argument("--model_config_path", type=str, default="config/snowman-yolov3.cfg", help="path to model config file")
 parser.add_argument("--data_config_path", type=str, default="config/coco.data", help="path to data config file")
 parser.add_argument("--weights_path", type=str, default="config/yolov3.weights", help="path to weights file")

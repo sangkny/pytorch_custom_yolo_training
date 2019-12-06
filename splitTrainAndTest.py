@@ -20,7 +20,7 @@ def split_data_set(image_dir):
             ind += 1
 
             if ind in test_array:
-                f_val.write(image_dir + '/' + f + '\n')
+                f_val.write(image_dir + '/' + f + '\n') # windows for unix '\r'
             else:
                 f_train.write(image_dir + '/' + f + '\n')
 
