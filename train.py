@@ -37,6 +37,7 @@ opt = parser.parse_args()
 print(opt)
 
 cuda = torch.cuda.is_available() and opt.use_cuda
+cuda = False
 
 os.makedirs("checkpoints", exist_ok=True)
 

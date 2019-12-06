@@ -4,7 +4,8 @@ import numpy as np
 import sys
 
 current_dir = "./data/snowman/images" # all the images before splitting
-target_dir = "/workspace/yolo/data/snowman/images"
+#target_dir = "/workspace/yolo/data/snowman/images" # for ubuntu training
+target_dir = "./data/snowman/images"
 split_pct = 10;
 file_train = open("data/snowman/train.txt", "w")
 file_val = open("data/snowman/val.txt", "w")
