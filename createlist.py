@@ -3,12 +3,15 @@ import os
 import numpy as np
 import sys
 
-current_dir = "./data/snowman/images" # all the images before splitting
-#target_dir = "/workspace/yolo/data/snowman/images" # for ubuntu training
-target_dir = "./data/snowman/images"
+#current_dir = "./data/snowman/images" # all the images before splitting
+current_dir = "C:/Users/mmc/workspace/yolo/data/itms/images" # all the images before splitting
+target_dir = "/workspace/yolo/data/itms/images" # for ubuntu training
+#target_dir = "./data/snowman/images"
 split_pct = 10;
-file_train = open("data/snowman/train.txt", "w")
-file_val = open("data/snowman/val.txt", "w")
+# file_train = open("data/snowman/train.txt", "w")
+# file_val = open("data/snowman/val.txt", "w")
+file_train = open("C:/Users/mmc/workspace/yolo/data/itms/train.txt", "w")
+file_val = open("C:/Users/mmc/workspace/yolo/data/itms/val.txt", "w")
 counter = 1  
 index_test = round(100 / split_pct)  
 for pathAndFilename in glob.iglob(os.path.join(current_dir, "*.jpg")):  

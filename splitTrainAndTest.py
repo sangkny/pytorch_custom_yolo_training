@@ -5,9 +5,10 @@ import sys
 
 
 def split_data_set(image_dir):
-    f_val = open("snowman_test.txt", 'w')
-    f_train = open("snowman_train.txt", 'w')
-
+    f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_test.txt", 'w')
+    f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train.txt", 'w')
+    use_target_dir = True
+    target_dir = "/workspace/yolo/data/itms/images"
     path, dirs, files = next(os.walk(image_dir))
     data_size = len(files)
 
@@ -20,9 +21,15 @@ def split_data_set(image_dir):
             ind += 1
 
             if ind in test_array:
-                f_val.write(image_dir + '/' + f + '\n') # windows for unix '\r'
+                if(use_target_dir):
+                    f_val.write(target_dir + '/' + f + '\n')  # windows for unix '\r'
+                else:
+                    f_val.write(image_dir + '/' + f + '\n') # windows for unix '\r'
             else:
-                f_train.write(image_dir + '/' + f + '\n')
+                if(use_target_dir):
+                    f_train.write(target_dir + '/' + f + '\n')
+                else:
+                    f_train.write(image_dir + '/' + f + '\n')
 
 
 split_data_set(sys.argv[1])
