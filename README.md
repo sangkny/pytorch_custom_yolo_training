@@ -4,6 +4,9 @@
 In addition, plotAccLoss.py can plot the loss information from the training log file by darknet with 
 ./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file > train.log
 
+#####
+To test the model, please use python object_detect_yolov3.py after editting the file for a target image
+
 ##### Under ubuntu training,
     train.txt val.txt should have only linefeed (\r) ended format in linux unlike LF\CR in windows.
     Absolute path is safe. However, relative path can be used.
