@@ -24,9 +24,11 @@ inpWidth = 416  # 608     #Width of network's input image
 inpHeight = 416  # 608     #Height of network's input image
 
 modelBaseDir = "C:/Users/mmc/workspace/yolo"
-args.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
+#rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
+#args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
+args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 1
-args.ps = 1
+args.ps = 0
 
 # Load names of classes
 classesFile = modelBaseDir + "/data/itms/itms-classes.names"
@@ -167,7 +169,7 @@ while cv.waitKey(1) < 0:
         if(args.ps):
             cv.waitKey(0)
         else:
-            cv.waitKey(3000)
+            cv.waitKey(1)
 
         break
 
