@@ -17,18 +17,20 @@ parser.add_argument('--ps', type=int, default=1, help='stop each image in the sc
 args = parser.parse_args()
 
 # Initialize the parameters
-confThreshold = 0.3  # Confidence threshold
+confThreshold = 0.5  # Confidence threshold
 nmsThreshold = 0.4  # Non-maximum suppression threshold
 
-inpWidth = 416  # 608     #Width of network's input image
-inpHeight = 416  # 608     #Height of network's input image
+inpWidth = 32*5  # 608     #Width of network's input image # 320(32*10)
+inpHeight = 32*4  # 608     #Height of network's input image # 288(32*9) best
 
 modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
-args.showText = 1
-args.ps = 0
+args.image = "./images/demo.jpg"
+
+#args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
+args.showText = 0
+args.ps = 1
 
 # Load names of classes
 classesFile = modelBaseDir + "/data/itms/itms-classes.names"
@@ -56,6 +58,7 @@ def getOutputsNames(net):
     layersNames = net.getLayerNames()
     # Get the names of the output layers, i.e. the layers with unconnected outputs
     return [layersNames[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+
 
 
 # Draw the predicted bounding box
