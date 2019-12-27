@@ -7,6 +7,7 @@ import cv2 as cv
 import argparse
 import sys
 import numpy as np
+from random import randint
 import os.path
 
 parser = argparse.ArgumentParser(description='Object Detection using YOLOv3 in OPENCV')
@@ -17,13 +18,14 @@ parser.add_argument('--ps', type=int, default=1, help='stop each image in the sc
 args = parser.parse_args()
 
 # Initialize the parameters
-confThreshold = 0.5  # Confidence threshold
+confThreshold = 0.1  # Confidence threshold
 nmsThreshold = 0.4  # Non-maximum suppression threshold
 
-inpWidth = 32*5  # 608     #Width of network's input image # 320(32*10)
-inpHeight = 32*4  # 608     #Height of network's input image # 288(32*9) best
+inpWidth = 32*10  # 608     #Width of network's input image # 320(32*10)
+inpHeight = 32*9  # 608     #Height of network's input image # 288(32*9) best
 
-modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/mmc/workspace/yolo"
+modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
@@ -176,8 +178,28 @@ while cv.waitKey(1) < 0:
 
         break
 
+    bboxes = []
+    colors = []
+    # OpenCV's selectROI function doesn't work for selecting multiple objects in Python
+    # So we will call this function in a loop till we are done selecting all objects
+    while True:
+        # draw bounding boxes over objects
+        # selectROI's default behaviour is to draw box starting from the center
+        # when fromCenter is set to false, you can draw box starting from top left corner
+        bbox = cv.selectROI('ROI AMAP', frame)
+        bboxes.append(bbox)
+        colors.append((randint(64, 255), randint(64, 255), randint(64, 255)))
+        print("Press q to quit selecting boxes and start detecting")
+        print("Press any other key to select next object")
+        k = cv.waitKey(0) & 0xFF
+        if (k == 113):  # q is pressed
+            break
+
+    print('Selected bounding boxes {}'.format(bboxes))
+    [bx, by, bwidth, bheight] = bboxes[0]
+    subFrame = frame[by:by+bheight, bx:bx+bwidth]
     # Create a 4D blob from a frame.
-    blob = cv.dnn.blobFromImage(frame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
+    blob = cv.dnn.blobFromImage(subFrame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
 
     # Sets the input to the network
     net.setInput(blob)

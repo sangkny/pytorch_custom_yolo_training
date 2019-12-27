@@ -2,4 +2,4 @@ classes=1
 train=data/snowman/train.txt
 valid=data/snowman/val.txt
 names=config/coco.names
-backup=backup/
+backup=data/snowman/weights/
