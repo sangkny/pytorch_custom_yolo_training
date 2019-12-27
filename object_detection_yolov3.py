@@ -18,14 +18,14 @@ parser.add_argument('--ps', type=int, default=1, help='stop each image in the sc
 args = parser.parse_args()
 
 # Initialize the parameters
-confThreshold = 0.1  # Confidence threshold
+confThreshold = 0.5  # Confidence threshold
 nmsThreshold = 0.4  # Non-maximum suppression threshold
 
 inpWidth = 32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9  # 608     #Height of network's input image # 288(32*9) best
 
-#modelBaseDir = "C:/Users/mmc/workspace/yolo"
-modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
@@ -133,6 +133,24 @@ def postprocess(frame, outs):
         height = box[3]
         drawPred(classIds[i], confidences[i], left, top, left + width, top + height)
 
+def Local2GlobalCoords(bbs, ots, Width, Height):
+    frameWidth = Width
+    frameHeight = Height
+    outs = ots
+    for idx, bb in enumerate(bbs):
+        [rcx,rcy, rwidth, rheight] = bb
+        outt = ots[idx]                     # this is same as ots if len(ots) = 1
+        for iidx, out in enumerate(outt):
+            print("out.shape : ", out.shape)
+            for detection in out:           #
+                # corrent only center positions   [x,y, width, height] is
+                # [detection[0], detection[1], detection[2], detection[3]]
+                outs[idx][iidx][0] = (rcx+detection[0]*rwidth)/frameWidth
+                outs[idx][iidx][1] = (rcy+detection[1]*rheight)/frameHeight
+                outs[idx][iidx][2] = detection[2]*rwidth/frameWidth
+                outs[idx][iidx][3] = detection[3]*rheight/frameHeight
+
+    return outs
 
 # Process inputs
 winName = 'Deep learning object detection in OpenCV'
@@ -178,36 +196,48 @@ while cv.waitKey(1) < 0:
 
         break
 
-    bboxes = []
-    colors = []
-    # OpenCV's selectROI function doesn't work for selecting multiple objects in Python
-    # So we will call this function in a loop till we are done selecting all objects
-    while True:
-        # draw bounding boxes over objects
-        # selectROI's default behaviour is to draw box starting from the center
-        # when fromCenter is set to false, you can draw box starting from top left corner
-        bbox = cv.selectROI('ROI AMAP', frame)
-        bboxes.append(bbox)
-        colors.append((randint(64, 255), randint(64, 255), randint(64, 255)))
-        print("Press q to quit selecting boxes and start detecting")
-        print("Press any other key to select next object")
-        k = cv.waitKey(0) & 0xFF
-        if (k == 113):  # q is pressed
-            break
+    #bboxes = []
+    #colors = []
+    bboxes = [(231, 125, 208, 128), (225, 202, 529, 392), (211, 376, 841, 525)]
+    # # OpenCV's selectROI function doesn't work for selecting multiple objects in Python
+    # # So we will call this function in a loop till we are done selecting all objects
+    # while True:
+    #     # draw bounding boxes over objects
+    #     # selectROI's default behaviour is to draw box starting from the center
+    #     # when fromCenter is set to false, you can draw box starting from top left corner
+    #     bbox = cv.selectROI('ROI AMAP', frame)
+    #     bboxes.append(bbox)
+    #     colors.append((randint(64, 255), randint(64, 255), randint(64, 255)))
+    #     print("Press q to quit selecting boxes and start detecting")
+    #     print("Press any other key to select next object")
+    #     k = cv.waitKey(0) & 0xFF
+    #     if (k == 113):  # q is pressed
+    #         break
 
+    subFrames =[]
     print('Selected bounding boxes {}'.format(bboxes))
-    [bx, by, bwidth, bheight] = bboxes[0]
-    subFrame = frame[by:by+bheight, bx:bx+bwidth]
+    for bb in bboxes:
+        [bx, by, bwidth, bheight] = bb
+        subFrame = frame[by:by+bheight, bx:bx+bwidth]
+        subFrame = cv.resize(subFrame, (inpWidth, inpHeight))
+        subFrames.append(subFrame)
     # Create a 4D blob from a frame.
-    blob = cv.dnn.blobFromImage(subFrame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
-
+    blob = cv.dnn.blobFromImages(subFrames, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
+    print("blob: {}".format(blob.shape))
     # Sets the input to the network
     net.setInput(blob)
 
     # Runs the forward pass to get output of the output layers
     outs = net.forward(getOutputsNames(net))
+    print(getOutputsNames(net))
+
+    # correct coordinates
+    # [Xnc] = (Xc + Rc*RWH)/[WH]
+    # outs1 = Local2GlobalCoords(bboxes, outs, frame.shape[1], frame.shape[0])
+
 
     # Remove the bounding boxes with low confidence
+
     postprocess(frame, outs)
 
     # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
