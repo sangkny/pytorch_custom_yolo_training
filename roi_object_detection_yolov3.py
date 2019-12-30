@@ -27,8 +27,8 @@ inpHeight = 32*9 # 608     #Height of network's input image # 288(32*9) best
 modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
-#args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.image = "./images/demo2.jpg"
+args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
+#args.image = "./images/demo2.jpg"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 0
 args.ps = 1
@@ -172,15 +172,92 @@ while cv.waitKey(1) < 0:
 
         break
 
-    # Create a 4D blob from a frame.
-    blob = cv.dnn.blobFromImage(frame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
-    # Sets the input to the network
-    net.setInput(blob)
-    # Runs the forward pass to get output of the output layers
-    outs = net.forward(getOutputsNames(net))
-    print(getOutputsNames(net))
+    bboxes = []
+    colors = []
+    #bboxes = [(231, 125, 208, 128), (225, 202, 529, 392), (211, 376, 841, 525)]
+    # # OpenCV's selectROI function doesn't work for selecting multiple objects in Python
+    # # So we will call this function in a loop till we are done selecting all objects
 
-    postprocess(frame, outs)
+    print("Press q to quit selecting boxes and start detecting")
+    print("Press any other key to select next object")
+
+    while True:
+        # draw bounding boxes over objects
+        # selectROI's default behaviour is to draw box starting from the center
+        # when fromCenter is set to false, you can draw box starting from top left corner
+        bbox = cv.selectROI('ROI as many as possible', frame)
+        bboxes.append(bbox)
+        colors.append((randint(64, 255), randint(64, 255), randint(64, 255)))
+
+        k = cv.waitKey(0) & 0xFF
+        if (k == 113):  # q is pressed
+            break
+
+    subFrames =[]
+    print('Selected bounding boxes {}'.format(bboxes))
+    for bb in bboxes:
+        [bx, by, bwidth, bheight] = bb
+        subFrame = frame[by:by+bheight, bx:bx+bwidth]
+        subFrame = cv.resize(subFrame, (inpWidth, inpHeight))
+        subFrames.append(subFrame)
+
+    # loop for multi-block roi -----------------------
+    frameHeight = frame.shape[0]
+    frameWidth = frame.shape[1]
+
+    classIds = []
+    confidences = []
+    boxes = []
+    for sfidx, sf in enumerate(subFrames):
+        # Create a 4D blob from a frame.
+        blob = cv.dnn.blobFromImage(sf, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
+        print("subROI: {}, blob: {}".format(sfidx, blob.shape))
+        # Sets the input to the network
+        net.setInput(blob)
+        # Runs the forward pass to get output of the output layers
+        outs = net.forward(getOutputsNames(net))
+        print(getOutputsNames(net))
+
+        # let's correct coordinates as  
+        # corrent only center positions   [x,y, width, height] is  [detection[0], detection[1], detection[2], detection[3]]
+        [rcx, rcy, rwidth, rheight] = bboxes[sfidx]
+        cnt = 0
+        for out in outs:
+            print("out.shape : ", out.shape)
+            for detection in out:
+                # if detection[4]>0.001:
+                scores = detection[5:]
+                classId = np.argmax(scores)
+                # if scores[classId]>confThreshold:
+                confidence = scores[classId]
+                # Remove the bounding boxes with low confidence
+                if detection[4] > confThreshold:
+                    print(detection[4], " - ", scores[classId], " - th : ", confThreshold)
+                    #print(detection)
+                if confidence > confThreshold:
+                    center_x = rcx + int(detection[0] * rwidth)
+                    center_y = rcy + int(detection[1] * rheight)
+                    width = int(detection[2] * rwidth)
+                    height = int(detection[3] * rheight)
+                    left = int(center_x - width / 2)
+                    top = int(center_y - height / 2)
+                    classIds.append(classId)
+                    confidences.append(float(confidence))
+                    boxes.append([left, top, width, height])
+                    cnt = cnt + 1
+        print('# of candidates for {}-th roi: {}'.format(sfidx, cnt))
+    # Perform non maximum suppression to eliminate redundant overlapping boxes with
+    # lower confidences.
+    indices = cv.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
+    print("# of Roi:{}, # of Cands:{}, # of object:{}".format(len(subFrames), len(boxes), len(indices)))
+    for i in indices:
+        i = i[0]
+        box = boxes[i]
+        left = box[0]
+        top = box[1]
+        width = box[2]
+        height = box[3]
+        drawPred(frame, classIds[i], confidences[i], left, top, left + width, top + height)
 
     # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
     t, _ = net.getPerfProfile()
