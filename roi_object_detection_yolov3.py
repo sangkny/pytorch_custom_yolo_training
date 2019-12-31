@@ -1,7 +1,6 @@
 # This code is written at BigVision LLC. It is based on the OpenCV project. It is subject to the license terms in the LICENSE file found in this distribution and at http://opencv.org/license.html
 
-# Usage example:  python3 object_detection_yolo.py --video=run.mp4
-#                 python3 object_detection_yolo.py --image=bird.jpg
+# Usage example:  python3 roi object_detection_yolov3.py --image=bird.jpg
 
 import cv2 as cv
 import argparse
@@ -10,7 +9,7 @@ import numpy as np
 from random import randint
 import os.path
 
-parser = argparse.ArgumentParser(description='Object Detection using YOLOv3 in OPENCV')
+parser = argparse.ArgumentParser(description='ROI-based Object Detection using YOLOv3 in OPENCV')
 parser.add_argument('--image', help='Path to image file.')
 parser.add_argument('--video', help='Path to video file.')
 parser.add_argument('--showText', type=int, default=1, help='show text in the ouput.')
@@ -24,13 +23,13 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 # 608     #Height of network's input image # 288(32*9) best
 
-modelBaseDir = "C:/Users/mmc/workspace/yolo"
-#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+#modelBaseDir = "C:/Users/mmc/workspace/yolo"
+modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
-args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-#args.image = "./images/demo2.jpg"
+#args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
+args.image = "./images/demo3.jpg"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
-args.showText = 0
+args.showText = 1
 args.ps = 1
 
 # Load names of classes
