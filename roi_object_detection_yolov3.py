@@ -14,6 +14,8 @@ parser.add_argument('--image', help='Path to image file.')
 parser.add_argument('--video', help='Path to video file.')
 parser.add_argument('--showText', type=int, default=1, help='show text in the ouput.')
 parser.add_argument('--ps', type=int, default=1, help='stop each image in the screen.')
+parser.add_argument('--showImgDetail', type = int, default = 1, help ='show image in detail')
+parser.add_argument('--showImgDetailText', type = int, default= 1, help ='flag to show texts in ROI image')
 args = parser.parse_args()
 
 # Initialize the parameters
@@ -23,14 +25,18 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 # 608     #Height of network's input image # 288(32*9) best
 
-#modelBaseDir = "C:/Users/mmc/workspace/yolo"
-modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.image = "./images/demo3.jpg"
+args.image = "./images/demo.jpg"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
-args.showText = 1
+args.showText = 0
 args.ps = 1
+args.showImgDetail = 1
+args.showImgDetailText = 1
+
+
 
 # Load names of classes
 classesFile = modelBaseDir + "/data/itms/itms-classes.names"
@@ -59,10 +65,10 @@ def getOutputsNames(net):
     return [layersNames[i[0] - 1] for i in net.getUnconnectedOutLayers()]
 
 # Draw the predicted bounding box
-def drawPred(frame, classId, conf, left, top, right, bottom):
+def drawPred(frame, classId, conf, left, top, right, bottom, color=(0,255,0)):
     # Draw a bounding box.
     #    cv.rectangle(frame, (left, top), (right, bottom), (255, 178, 50), 3)
-    cv.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 3)
+    cv.rectangle(frame, (left, top), (right, bottom), color, 3)
 
     label = '%.2f' % conf
 
@@ -207,7 +213,12 @@ while cv.waitKey(1) < 0:
     classIds = []
     confidences = []
     boxes = []
+    etimes = [] # elapse time for net.forward
     for sfidx, sf in enumerate(subFrames):
+        # sub frame information
+        subclassIds = []
+        subconfidences = []
+        subboxes = []
         # Create a 4D blob from a frame.
         blob = cv.dnn.blobFromImage(sf, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
         print("subROI: {}, blob: {}".format(sfidx, blob.shape))
@@ -216,6 +227,12 @@ while cv.waitKey(1) < 0:
         # Runs the forward pass to get output of the output layers
         outs = net.forward(getOutputsNames(net))
         print(getOutputsNames(net))
+
+        # compute performance time / milisecs
+        et, _ = net.getPerfProfile()
+        tlabel = et * 1000.0 / cv.getTickFrequency() # milisecs
+        etimes.append(tlabel)
+
 
         # let's correct coordinates as  
         # corrent only center positions   [x,y, width, height] is  [detection[0], detection[1], detection[2], detection[3]]
@@ -243,8 +260,35 @@ while cv.waitKey(1) < 0:
                     classIds.append(classId)
                     confidences.append(float(confidence))
                     boxes.append([left, top, width, height])
+                    # sub frame
+                    subclassIds.append(classId)
+                    subconfidences.append(float(confidence))
+                    subboxes.append([left, top, width, height])
+
                     cnt = cnt + 1
         print('# of candidates for {}-th roi: {}'.format(sfidx, cnt))
+
+        # draw each sub frame information
+        if args.showImgDetail:
+            subindices = cv.dnn.NMSBoxes(subboxes, subconfidences, confThreshold, nmsThreshold)
+            tmpFrame = frame.copy()
+            subColor = colors[sfidx]
+            cv.rectangle(tmpFrame, (rcx, rcy), (rcx+rwidth, rcy+rheight), subColor, 2)
+            #if args.showText:
+            textLabel = 'Roi (x,y,width,height, # objs):({}, {}, {}, {}, #{}) in {} msec'.format(rcx, rcy, rwidth, rheight, len(subindices), str(tlabel))
+            cv.putText(tmpFrame, textLabel, (rcx, rcy-10), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
+
+            for i in subindices:
+                i = i[0]
+                box = subboxes[i]
+                left = box[0]
+                top = box[1]
+                width = box[2]
+                height = box[3]
+                drawPred(tmpFrame, subclassIds[i], subconfidences[i], left, top, left + width, top + height, subColor)
+            cv.imshow("subROI:"+str(sfidx), tmpFrame)
+            cv.waitKey(1)
+
     # Perform non maximum suppression to eliminate redundant overlapping boxes with
     # lower confidences.
     indices = cv.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
@@ -259,8 +303,13 @@ while cv.waitKey(1) < 0:
         drawPred(frame, classIds[i], confidences[i], left, top, left + width, top + height)
 
     # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
-    t, _ = net.getPerfProfile()
-    label = 'Inference time: %.2f ms' % (t * 1000.0 / cv.getTickFrequency())
+    #t, _ = net.getPerfProfile()
+    tot = 0
+    for etime in etimes:
+        tot = tot + etime
+
+    #label = 'Inference time: %.2f ms' % (t * 1000.0 / cv.getTickFrequency())
+    label = 'Inference time: %.2f ms' % (tot)
     print(label)
     cv.putText(frame, label, (0, 15), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
