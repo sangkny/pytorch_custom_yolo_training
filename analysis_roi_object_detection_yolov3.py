@@ -1,6 +1,6 @@
 # This code is written at BigVision LLC. It is based on the OpenCV project. It is subject to the license terms in the LICENSE file found in this distribution and at http://opencv.org/license.html
 
-# Usage example:  python3 roi object_detection_yolov3.py --image=bird.jpg
+# Usage example:  python3 roi object_detection_yolov3.py --image=bird.jpg --anno bird.txt
 
 import cv2 as cv
 import argparse
@@ -16,6 +16,7 @@ parser.add_argument('--showText', type=int, default=1, help='show text in the ou
 parser.add_argument('--ps', type=int, default=1, help='stop each image in the screen.')
 parser.add_argument('--showImgDetail', type = int, default = 1, help ='show image in detail')
 parser.add_argument('--showImgDetailText', type = int, default= 1, help ='flag to show texts in ROI image')
+parser.add_argument('--analyzeROI', type = int, default = 1, help = 'flag to trig if roi analysis is conducted or not')
 args = parser.parse_args()
 
 # Initialize the parameters
@@ -35,6 +36,7 @@ args.showText = 0
 args.ps = 1
 args.showImgDetail = 1
 args.showImgDetailText = 1
+args.analyzeROI = 1
 
 
 
@@ -132,7 +134,24 @@ def postprocess(frame, outs):
         height = box[3]
         drawPred(frame, classIds[i], confidences[i], left, top, left + width, top + height)
 
+# mouse event
+def click_and_crop(event, x, y, flags, param):
+    # refPt와 corner selection 변수를 global로 만듭니다.
+    global refPt, c_select
 
+    # 왼쪽 마우스가 release 되면 (x, y) 좌표의 갯수에 따라 기록을 시작하거나 끝낸다
+    if event == cv.EVENT_LBUTTONUP:
+        if len(refPt) < 1: # selection 0
+            refPt = [(x, y)]
+            c_select = True
+        elif len(refPt) <= 3:
+            refPt.append((x,y))
+            if(len(refPt) == 4):
+                c_select = False
+                # draw the image
+                # print(refPt)
+
+# main function ---------------
 # Process inputs
 winName = 'Deep learning object detection in OpenCV'
 cv.namedWindow(winName, cv.WINDOW_AUTOSIZE)
@@ -157,12 +176,18 @@ else:
     cap = cv.VideoCapture(0)
 
 # Get the video writer initialized to save the output video
+spatialStep = 20 # shift step (stride)
+spatialStepX = spatialStep # shift step (stride)
+spatialStepY = spatialStep # shift step (stride)
+sizeStep = 32
+overLapRatio = 0.01         # overlap area ratio 10%
+
+
 if (not args.image):
     vid_writer = cv.VideoWriter(outputFile, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
                                 (round(cap.get(cv.CAP_PROP_FRAME_WIDTH)), round(cap.get(cv.CAP_PROP_FRAME_HEIGHT))))
 
-while cv.waitKey(1) < 0:
-
+while args.analyzeROI > 0:
     # get frame from the video
     hasFrame, frame = cap.read()
 
@@ -174,8 +199,105 @@ while cv.waitKey(1) < 0:
             cv.waitKey(0)
         else:
             cv.waitKey(1)
-
         break
+    # create mask with mouse selection
+    image = frame.copy()
+    clone = frame.copy()
+    # 새 윈도우 창을 만들고 그 윈도우 창에 click_and_crop 함수를 세팅해 줍니다.
+    cv.namedWindow("image")
+    refPt = []
+    cv.setMouseCallback("image", click_and_crop)
+    '''
+    키보드에서 다음을 입력받아 수행합니다.
+    - q : 작업을 끝냅니다.
+    - r : 이미지를 초기화 합니다.
+    - c : ROI 사각형을 그리고 좌표를 출력합니다.
+    '''
+    while True:
+        # 이미지를 출력하고 key 입력을 기다립니다.
+        cv.imshow("image", image)
+        key = cv.waitKey(1) & 0xFF
+
+        # 만약 r이 입력되면, crop 할 영열을 리셋합니다.
+        if key == ord("r"):
+            image = clone.copy()
+            refPt=[]
+
+        # 만약 c가 입력되고 ROI 박스가 정확하게 입력되었다면
+        # 박스의 좌표를 출력하고 crop한 영역을 출력합니다.
+        elif key == ord("c"):
+            if len(refPt) == 4:
+                #roi = clone[refPt[0][1]:refPt[1][1], refPt[0][0]:refPt[1][0]]
+                roi = cv.polylines(image, [np.array(refPt, np.int32)], True, (0, 255, 0), 2)
+                print(refPt)
+                cv.imshow("ROI", roi)
+                cv.waitKey(0)
+        # 만약 q가 입력되면 작업을 끝냅니다.
+        elif key == ord("q"):
+            break
+    # 열린 window를 종료합니다.
+    cv.destroyWindow("ROI")
+    cv.destroyWindow("image")
+
+
+    # create the possible ROI with spatial step and Size
+    # loop for multi-block roi -----------------------
+    frameHeight = frame.shape[0]
+    frameWidth = frame.shape[1]
+    tmask = np.zeros((frame.shape[0], frame.shape[1]), np.uint8)    # target mask
+    rmask = tmask.copy()                                            # roi mask
+    if len(refPt) == 4:
+        tmask = cv.fillConvexPoly(tmask, np.array(refPt, np.int32), (255, 255, 255))
+        cv.imshow('road mask', tmask)
+        cv.waitKey(1)
+    else:
+        print('no refPt !!!')
+    nonZerotmask = cv.countNonZero(tmask)
+    curWsizeStep = np.max([2, int(inpWidth / sizeStep) - 0])  # current size step, min: 2*sizeStep 64
+    curHsizeStep = np.max([2, int(inpHeight / sizeStep) - 0])  # current size step, min: 2*sizeStep 64
+    MaxSizeStep = np.min([int(frameWidth/sizeStep), int(frameHeight/sizeStep)])
+    bboxes = []
+    dstep = (curWsizeStep-curHsizeStep)
+    if(curWsizeStep >= curHsizeStep):
+        bw = list(range(curWsizeStep,MaxSizeStep))
+        bh = list(range(curWsizeStep-dstep,MaxSizeStep-dstep))
+    else:
+        bw = list(range(curWsizeStep + dstep, MaxSizeStep + dstep))
+        bh = list(range(curWsizeStep, MaxSizeStep))
+
+    for wi, w in enumerate(bw):     # width and hight increases as time goes
+        brw = w * sizeStep                    # width
+        brh = bh[wi] * sizeStep               # height
+        # reset roi mask to zero
+        rmask.all(0)
+        for yi in list(range(0, frameHeight, spatialStepY)):
+            if yi + brh >= frameHeight:
+                continue
+            for xi in list(range(0, frameWidth, spatialStepX)):
+                if xi + brw >= frameWidth:
+                    continue
+                # check the condition with area overlap
+                # maskimg2 = cv.fillConvexPoly(mask, np.array(
+                #     [(bboxes[0][0], bboxes[0][1]), (bboxes[0][0] + bboxes[0][2], bboxes[0][1]),
+                #      (bboxes[0][0] + bboxes[0][2], bboxes[0][1] + bboxes[0][3]),
+                #      (bboxes[0][0], bboxes[0][1] + bboxes[0][3])], np.int32), (255, 255, 255))
+                rmask = cv.fillConvexPoly(rmask, np.array(
+                    [(xi, yi), (xi + brw, yi),
+                     (xi + brw, yi + brh),
+                     (xi, yi + brh)], np.int32), (255, 255, 255))
+                #inter = np.logical_and(tmask, rmask)
+                inter = cv.bitwise_and(tmask, rmask)
+                area_ratio = float(cv.countNonZero(inter))/nonZerotmask
+                # if(args.showImgDetail):
+                #     cv.imshow('intersection', inter)
+                #     cv.waitKey(1)
+                if area_ratio >= overLapRatio:
+                    bboxes.append((xi, yi, brw, brh))
+
+
+    print('# of candidates : {} regions'.format(len(bboxes)))
+    print(bboxes)
+    """
 
     bboxes = []
     colors = []
@@ -234,7 +356,7 @@ while cv.waitKey(1) < 0:
         etimes.append(tlabel)
 
 
-        # let's correct coordinates as  
+        # let's correct coordinates as
         # corrent only center positions   [x,y, width, height] is  [detection[0], detection[1], detection[2], detection[3]]
         [rcx, rcy, rwidth, rheight] = bboxes[sfidx]
         cnt = 0
@@ -321,3 +443,5 @@ while cv.waitKey(1) < 0:
 
     cv.imshow(winName, frame)
     cv.waitKey(1)
+    """
+    args.analysisROI = 0
