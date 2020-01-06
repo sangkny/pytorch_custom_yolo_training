@@ -1,6 +1,9 @@
-# This code is written at BigVision LLC. It is based on the OpenCV project. It is subject to the license terms in the LICENSE file found in this distribution and at http://opencv.org/license.html
-
-# Usage example:  python3 roi object_detection_yolov3.py --image=bird.jpg --anno bird.txt
+# Usage example:  python3 analysis_roi_object_detection_yolov3.py --image=bird.jpg --anno bird.txt
+# 본 파일은 마우스로 역역을 지정하여 그 영역위주로 object를 윈도우의 크기를 조절하며 가장 좋은 조건을 찾기
+# 위한 프로그램임.
+# 단순히 특정 지역만을 넣어 나온 결과를 보기 위한 것은
+# object_detection_yolov3.py 에 구현되어 있음.
+# --------------------------------------------------------------------------------------------------
 
 import cv2 as cv
 import argparse
@@ -14,9 +17,10 @@ parser.add_argument('--image', help='Path to image file.')
 parser.add_argument('--video', help='Path to video file.')
 parser.add_argument('--showText', type=int, default=1, help='show text in the ouput.')
 parser.add_argument('--ps', type=int, default=1, help='stop each image in the screen.')
-parser.add_argument('--showImgDetail', type = int, default = 1, help ='show image in detail')
-parser.add_argument('--showImgDetailText', type = int, default= 1, help ='flag to show texts in ROI image')
-parser.add_argument('--analyzeROI', type = int, default = 1, help = 'flag to trig if roi analysis is conducted or not')
+parser.add_argument('--showImgDetail', type = int, default=1, help ='show image in detail')
+parser.add_argument('--showImgDetailText', type = int, default=1, help ='flag to show texts in ROI image')
+parser.add_argument('--analyzeROI', type=int, default= 1, help='flag to trig if roi analysis is conducted or not')
+parser.add_argument('--roiMouseInput', type=int, default=0, help='flag for roi mouse input or not')
 args = parser.parse_args()
 
 # Initialize the parameters
@@ -26,8 +30,8 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
-#modelBaseDir = "C:/Users/mmc/workspace/yolo"
-modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
@@ -37,6 +41,7 @@ args.ps = 1
 args.showImgDetail = 1
 args.showImgDetailText = 1
 args.analyzeROI = 1
+args.roiMouseInput = 0;
 
 
 
@@ -153,7 +158,7 @@ def click_and_crop(event, x, y, flags, param):
 
 # main function ---------------
 # Process inputs
-winName = 'Deep learning object detection in OpenCV'
+winName = 'Select Best Object Detection Window in OpenCV'
 cv.namedWindow(winName, cv.WINDOW_AUTOSIZE)
 
 outputFile = "yolo_out_py.avi"
@@ -180,8 +185,7 @@ spatialStep = 20 # shift step (stride)
 spatialStepX = spatialStep # shift step (stride)
 spatialStepY = spatialStep # shift step (stride)
 sizeStep = 32
-overLapRatio = 0.01         # overlap area ratio 10%
-
+overLapRatio = 0.3         # overlap area ratio 10%
 
 if (not args.image):
     vid_writer = cv.VideoWriter(outputFile, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,
@@ -201,44 +205,46 @@ while args.analyzeROI > 0:
             cv.waitKey(1)
         break
     # create mask with mouse selection
-    image = frame.copy()
-    clone = frame.copy()
-    # 새 윈도우 창을 만들고 그 윈도우 창에 click_and_crop 함수를 세팅해 줍니다.
-    cv.namedWindow("image")
-    refPt = []
-    cv.setMouseCallback("image", click_and_crop)
-    '''
-    키보드에서 다음을 입력받아 수행합니다.
-    - q : 작업을 끝냅니다.
-    - r : 이미지를 초기화 합니다.
-    - c : ROI 사각형을 그리고 좌표를 출력합니다.
-    '''
-    while True:
-        # 이미지를 출력하고 key 입력을 기다립니다.
-        cv.imshow("image", image)
-        key = cv.waitKey(1) & 0xFF
+    if args.roiMouseInput:
+        image = frame.copy()
+        clone = frame.copy()
+        # 새 윈도우 창을 만들고 그 윈도우 창에 click_and_crop 함수를 세팅해 줍니다.
+        cv.namedWindow("image")
+        refPt = []
+        cv.setMouseCallback("image", click_and_crop)
+        '''
+        키보드에서 다음을 입력받아 수행합니다.
+        - q : 작업을 끝냅니다.
+        - r : 이미지를 초기화 합니다.
+        - c : ROI 사각형을 그리고 좌표를 출력합니다.
+        '''
+        while True:
+            # 이미지를 출력하고 key 입력을 기다립니다.
+            cv.imshow("image", image)
+            key = cv.waitKey(1) & 0xFF
 
-        # 만약 r이 입력되면, crop 할 영열을 리셋합니다.
-        if key == ord("r"):
-            image = clone.copy()
-            refPt=[]
+            # 만약 r이 입력되면, crop 할 영열을 리셋합니다.
+            if key == ord("r"):
+                image = clone.copy()
+                refPt=[]
 
-        # 만약 c가 입력되고 ROI 박스가 정확하게 입력되었다면
-        # 박스의 좌표를 출력하고 crop한 영역을 출력합니다.
-        elif key == ord("c"):
-            if len(refPt) == 4:
-                #roi = clone[refPt[0][1]:refPt[1][1], refPt[0][0]:refPt[1][0]]
-                roi = cv.polylines(image, [np.array(refPt, np.int32)], True, (0, 255, 0), 2)
-                print(refPt)
-                cv.imshow("ROI", roi)
-                cv.waitKey(0)
-        # 만약 q가 입력되면 작업을 끝냅니다.
-        elif key == ord("q"):
-            break
-    # 열린 window를 종료합니다.
-    cv.destroyWindow("ROI")
-    cv.destroyWindow("image")
-
+            # 만약 c가 입력되고 ROI 박스가 정확하게 입력되었다면
+            # 박스의 좌표를 출력하고 crop한 영역을 출력합니다.
+            elif key == ord("c"):
+                if len(refPt) == 4:
+                    #roi = clone[refPt[0][1]:refPt[1][1], refPt[0][0]:refPt[1][0]]
+                    roi = cv.polylines(image, [np.array(refPt, np.int32)], True, (0, 255, 0), 2)
+                    print(refPt)
+                    cv.imshow("ROI", roi)
+                    cv.waitKey(0)
+            # 만약 q가 입력되면 작업을 끝냅니다.
+            elif key == ord("q"):
+                break
+        # 열린 window를 종료합니다.
+        cv.destroyWindow("ROI")
+        cv.destroyWindow("image")
+    else: # use default ROI Region
+        refPt = [(284, 130), (1783, 827), (261, 954), (238, 134)]
 
     # create the possible ROI with spatial step and Size
     # loop for multi-block roi -----------------------
@@ -253,8 +259,8 @@ while args.analyzeROI > 0:
     else:
         print('no refPt !!!')
     nonZerotmask = cv.countNonZero(tmask)
-    curWsizeStep = np.max([2, int(inpWidth / sizeStep) - 0])  # current size step, min: 2*sizeStep 64
-    curHsizeStep = np.max([2, int(inpHeight / sizeStep) - 0])  # current size step, min: 2*sizeStep 64
+    curWsizeStep = np.max([2, int(inpWidth / sizeStep) - 2])  # current size step, min: 2*sizeStep 64
+    curHsizeStep = np.max([2, int(inpHeight / sizeStep) - 2])  # current size step, min: 2*sizeStep 64
     MaxSizeStep = np.min([int(frameWidth/sizeStep), int(frameHeight/sizeStep)])
     bboxes = []
     dstep = (curWsizeStep-curHsizeStep)
@@ -285,65 +291,45 @@ while args.analyzeROI > 0:
                     [(xi, yi), (xi + brw, yi),
                      (xi + brw, yi + brh),
                      (xi, yi + brh)], np.int32), (255, 255, 255))
-                #inter = np.logical_and(tmask, rmask)
+                #inter = np.logical_and(tmask, rmask) # is not working : black all
                 inter = cv.bitwise_and(tmask, rmask)
-                area_ratio = float(cv.countNonZero(inter))/nonZerotmask
+                #area_ratio = float(cv.countNonZero(inter))/nonZerotmask
+                area_ratio = float(cv.countNonZero(inter)) / float(brw*brh)
                 # if(args.showImgDetail):
                 #     cv.imshow('intersection', inter)
                 #     cv.waitKey(1)
                 if area_ratio >= overLapRatio:
                     bboxes.append((xi, yi, brw, brh))
 
-
     print('# of candidates : {} regions'.format(len(bboxes)))
     print(bboxes)
-    """
-
-    bboxes = []
     colors = []
-    #bboxes = [(231, 125, 208, 128), (225, 202, 529, 392), (211, 376, 841, 525)]
-    # # OpenCV's selectROI function doesn't work for selecting multiple objects in Python
-    # # So we will call this function in a loop till we are done selecting all objects
 
-    print("Press q to quit selecting boxes and start detecting")
-    print("Press any other key to select next object")
-
-    while True:
-        # draw bounding boxes over objects
-        # selectROI's default behaviour is to draw box starting from the center
-        # when fromCenter is set to false, you can draw box starting from top left corner
-        bbox = cv.selectROI('ROI as many as possible', frame)
-        bboxes.append(bbox)
-        colors.append((randint(64, 255), randint(64, 255), randint(64, 255)))
-
-        k = cv.waitKey(0) & 0xFF
-        if (k == 113):  # q is pressed
-            break
-
-    subFrames =[]
-    print('Selected bounding boxes {}'.format(bboxes))
-    for bb in bboxes:
-        [bx, by, bwidth, bheight] = bb
-        subFrame = frame[by:by+bheight, bx:bx+bwidth]
-        subFrame = cv.resize(subFrame, (inpWidth, inpHeight))
-        subFrames.append(subFrame)
+    # subFrames =[]
+    # for bb in bboxes:
+    #     [bx, by, bwidth, bheight] = bb
+    #     subFrame = frame[by:by+bheight, bx:bx+bwidth]
+    #     subFrame = cv.resize(subFrame, (inpWidth, inpHeight))
+    #     subFrames.append(subFrame)
 
     # loop for multi-block roi -----------------------
-    frameHeight = frame.shape[0]
-    frameWidth = frame.shape[1]
-
     classIds = []
     confidences = []
     boxes = []
     etimes = [] # elapse time for net.forward
-    for sfidx, sf in enumerate(subFrames):
+    debugFrame = frame.copy()
+    for bidx, bb in enumerate(bboxes):
+        [bx, by, bwidth, bheight] = bb
+        subFrame = frame[by:by + bheight, bx:bx + bwidth]
+        subFrame = cv.resize(subFrame, (inpWidth, inpHeight))
+
         # sub frame information
         subclassIds = []
         subconfidences = []
         subboxes = []
         # Create a 4D blob from a frame.
-        blob = cv.dnn.blobFromImage(sf, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
-        print("subROI: {}, blob: {}".format(sfidx, blob.shape))
+        blob = cv.dnn.blobFromImage(subFrame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
+        print("subROI: {}, blob: {}".format(bidx, blob.shape))
         # Sets the input to the network
         net.setInput(blob)
         # Runs the forward pass to get output of the output layers
@@ -354,11 +340,9 @@ while args.analyzeROI > 0:
         et, _ = net.getPerfProfile()
         tlabel = et * 1000.0 / cv.getTickFrequency() # milisecs
         etimes.append(tlabel)
-
-
         # let's correct coordinates as
         # corrent only center positions   [x,y, width, height] is  [detection[0], detection[1], detection[2], detection[3]]
-        [rcx, rcy, rwidth, rheight] = bboxes[sfidx]
+        [rcx, rcy, rwidth, rheight] = bboxes[bidx] # this is bb
         cnt = 0
         for out in outs:
             print("out.shape : ", out.shape)
@@ -388,17 +372,21 @@ while args.analyzeROI > 0:
                     subboxes.append([left, top, width, height])
 
                     cnt = cnt + 1
-        print('# of candidates for {}-th roi: {}'.format(sfidx, cnt))
+        print('# of candidates for {}-th roi: {}'.format(bidx, cnt))
 
         # draw each sub frame information
         if args.showImgDetail:
             subindices = cv.dnn.NMSBoxes(subboxes, subconfidences, confThreshold, nmsThreshold)
-            tmpFrame = frame.copy()
-            subColor = colors[sfidx]
-            cv.rectangle(tmpFrame, (rcx, rcy), (rcx+rwidth, rcy+rheight), subColor, 2)
+            #debugFrame.all(0)
+            debugFrame = frame.copy()
+            subColor = colors[bidx]
+            cv.rectangle(debugFrame, (rcx, rcy), (rcx+rwidth, rcy+rheight), subColor, 2)
             #if args.showText:
-            textLabel = 'Roi (x,y,width,height, # objs):({}, {}, {}, {}, #{}) in {} msec'.format(rcx, rcy, rwidth, rheight, len(subindices), str(tlabel))
-            cv.putText(tmpFrame, textLabel, (rcx, rcy-10), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
+            textLabel = 'Roi (x,y,width,height, # objs):({}, {}, {}, {}, #{}) in {} msec'.format(rcx, rcy, rwidth,
+                                                                                                 rheight,
+                                                                                                 len(subindices),
+                                                                                                 str(tlabel))
+            cv.putText(debugFrame, textLabel, (rcx, rcy-10), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
 
             for i in subindices:
                 i = i[0]
@@ -407,14 +395,15 @@ while args.analyzeROI > 0:
                 top = box[1]
                 width = box[2]
                 height = box[3]
-                drawPred(tmpFrame, subclassIds[i], subconfidences[i], left, top, left + width, top + height, subColor)
-            cv.imshow("subROI:"+str(sfidx), tmpFrame)
+                drawPred(debugFrame, subclassIds[i], subconfidences[i], left, top, left + width, top + height, subColor)
+            #cv.imshow("subROI:"+str(sfidx), tmpFrame)
+            cv.imshow("subROI", debugFrame)
             cv.waitKey(1)
 
     # Perform non maximum suppression to eliminate redundant overlapping boxes with
     # lower confidences.
     indices = cv.dnn.NMSBoxes(boxes, confidences, confThreshold, nmsThreshold)
-    print("# of Roi:{}, # of Cands:{}, # of object:{}".format(len(subFrames), len(boxes), len(indices)))
+    print("# of Roi:{}, # of Cands:{}, # of object:{}".format(len(bboxes), len(boxes), len(indices)))
     for i in indices:
         i = i[0]
         box = boxes[i]
@@ -437,11 +426,10 @@ while args.analyzeROI > 0:
 
     # Write the frame with the detection boxes
     if (args.image):
-        cv.imwrite(outputFile, frame.astype(np.uint8));
+        cv.imwrite(outputFile, frame.astype(np.uint8))
     else:
         vid_writer.write(frame.astype(np.uint8))
 
     cv.imshow(winName, frame)
     cv.waitKey(1)
-    """
     args.analysisROI = 0
