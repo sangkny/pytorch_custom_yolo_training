@@ -33,8 +33,8 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
-modelBaseDir = "C:/Users/mmc/workspace/yolo"
-#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+#modelBaseDir = "C:/Users/mmc/workspace/yolo"
+modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
@@ -67,7 +67,38 @@ modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final.weights"
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
 net.setPreferableTarget(cv.dnn.DNN_TARGET_OPENCL_FP16)
+"""
+# import the necessary packages
+from collections import namedtuple
+import numpy as np
+import cv2
+ 
+# define the `Detection` object
+Detection = namedtuple("Detection", ["image_path", "gt", "pred"])
+"""
+# IOU implementation
+def bb_intersection_over_union(boxA, boxB):
+    # determine the (x, y)-coordinates of the intersection rectangle
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[2], boxB[2])
+    yB = min(boxA[3], boxB[3])
 
+    # compute the area of intersection rectangle
+    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+
+    # compute the area of both the prediction and ground-truth
+    # rectangles
+    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the interesection area
+    iou = interArea / float(boxAArea + boxBArea - interArea)
+
+    # return the intersection over union value
+    return iou
 
 # Get the names of the output layers
 def getOutputsNames(net):
