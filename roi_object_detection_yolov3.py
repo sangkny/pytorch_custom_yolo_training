@@ -210,6 +210,16 @@ while cv.waitKey(1) < 0:
     frameHeight = frame.shape[0]
     frameWidth = frame.shape[1]
 
+
+    # # Create a 4D blob from a frame.
+    # blob1 = cv.dnn.blobFromImages(subFrames, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
+    # print("blob1: {}".format(blob1.shape))
+    # # Sets the input to the network
+    # net.setInput(blob1)
+    # # Runs the forward pass to get output of the output layers
+    # outs1 = net.forward(getOutputsNames(net))
+    # t, _ = net.getPerfProfile()
+
     classIds = []
     confidences = []
     boxes = []
