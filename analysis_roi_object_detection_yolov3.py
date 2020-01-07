@@ -18,9 +18,12 @@ parser.add_argument('--video', help='Path to video file.')
 parser.add_argument('--showText', type=int, default=1, help='show text in the ouput.')
 parser.add_argument('--ps', type=int, default=1, help='stop each image in the screen.')
 parser.add_argument('--showImgDetail', type = int, default=1, help ='show image in detail')
+parser.add_argument('--showRoiImgDetail', type = int, default=1, help ='show Roi image in detail')
 parser.add_argument('--showImgDetailText', type = int, default=1, help ='flag to show texts in ROI image')
 parser.add_argument('--analyzeROI', type=int, default= 1, help='flag to trig if roi analysis is conducted or not')
 parser.add_argument('--roiMouseInput', type=int, default=0, help='flag for roi mouse input or not')
+parser.add_argument('--debugTextDetail', type=int, default=1, help='flag for displaying texts in Detail')
+
 args = parser.parse_args()
 
 # Initialize the parameters
@@ -30,8 +33,8 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
-modelBaseDir = "C:/Users/mmc/workspace/yolo"
-#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+#modelBaseDir = "C:/Users/mmc/workspace/yolo"
+modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
@@ -39,9 +42,11 @@ args.image = "./images/demo.jpg"
 args.showText = 0
 args.ps = 1
 args.showImgDetail = 1
+args.showRoiImgDetail = 0
 args.showImgDetailText = 1
+args.debugTextDetail = 0
 args.analyzeROI = 1
-args.roiMouseInput = 0;
+args.roiMouseInput = 0
 
 
 
@@ -254,8 +259,9 @@ while args.analyzeROI > 0:
     rmask = tmask.copy()                                            # roi mask
     if len(refPt) == 4:
         tmask = cv.fillConvexPoly(tmask, np.array(refPt, np.int32), (255, 255, 255))
-        cv.imshow('road mask', tmask)
-        cv.waitKey(1)
+        if args.showRoiImgDetail:
+            cv.imshow('road mask', tmask)
+            cv.waitKey(1)
     else:
         print('no refPt !!!')
     nonZerotmask = cv.countNonZero(tmask)
@@ -274,8 +280,6 @@ while args.analyzeROI > 0:
     for wi, w in enumerate(bw):     # width and hight increases as time goes
         brw = w * sizeStep                    # width
         brh = bh[wi] * sizeStep               # height
-        # reset roi mask to zero
-        rmask.all(0)
         for yi in list(range(0, frameHeight, spatialStepY)):
             if yi + brh >= frameHeight:
                 continue
@@ -287,6 +291,8 @@ while args.analyzeROI > 0:
                 #     [(bboxes[0][0], bboxes[0][1]), (bboxes[0][0] + bboxes[0][2], bboxes[0][1]),
                 #      (bboxes[0][0] + bboxes[0][2], bboxes[0][1] + bboxes[0][3]),
                 #      (bboxes[0][0], bboxes[0][1] + bboxes[0][3])], np.int32), (255, 255, 255))
+                # reset roi mask to zero
+                rmask.fill(0)
                 rmask = cv.fillConvexPoly(rmask, np.array(
                     [(xi, yi), (xi + brw, yi),
                      (xi + brw, yi + brh),
@@ -295,22 +301,16 @@ while args.analyzeROI > 0:
                 inter = cv.bitwise_and(tmask, rmask)
                 #area_ratio = float(cv.countNonZero(inter))/nonZerotmask
                 area_ratio = float(cv.countNonZero(inter)) / float(brw*brh)
-                # if(args.showImgDetail):
-                #     cv.imshow('intersection', inter)
-                #     cv.waitKey(1)
+                if(args.showRoiImgDetail):
+                    cv.rectangle(inter, (xi, yi), (xi+brw, yi+brh), (255, 0, 255), 2)
+                    cv.imshow('intersection', inter)
+                    cv.waitKey(1)
                 if area_ratio >= overLapRatio:
                     bboxes.append((xi, yi, brw, brh))
 
     print('# of candidates : {} regions'.format(len(bboxes)))
-    print(bboxes)
-    colors = []
-
-    # subFrames =[]
-    # for bb in bboxes:
-    #     [bx, by, bwidth, bheight] = bb
-    #     subFrame = frame[by:by+bheight, bx:bx+bwidth]
-    #     subFrame = cv.resize(subFrame, (inpWidth, inpHeight))
-    #     subFrames.append(subFrame)
+    if args.debugTextDetail:
+        print(bboxes)
 
     # loop for multi-block roi -----------------------
     classIds = []
@@ -318,6 +318,7 @@ while args.analyzeROI > 0:
     boxes = []
     etimes = [] # elapse time for net.forward
     debugFrame = frame.copy()
+    bboxes = bboxes[100:]
     for bidx, bb in enumerate(bboxes):
         [bx, by, bwidth, bheight] = bb
         subFrame = frame[by:by + bheight, bx:bx + bwidth]
@@ -329,12 +330,13 @@ while args.analyzeROI > 0:
         subboxes = []
         # Create a 4D blob from a frame.
         blob = cv.dnn.blobFromImage(subFrame, 1 / 255, (inpWidth, inpHeight), [0, 0, 0], 1, crop=False)
-        print("subROI: {}, blob: {}".format(bidx, blob.shape))
         # Sets the input to the network
         net.setInput(blob)
         # Runs the forward pass to get output of the output layers
         outs = net.forward(getOutputsNames(net))
-        print(getOutputsNames(net))
+        if args.debugTextDetail:
+            print("subROI: {}, blob: {}".format(bidx, blob.shape))
+            print(getOutputsNames(net))
 
         # compute performance time / milisecs
         et, _ = net.getPerfProfile()
@@ -345,7 +347,9 @@ while args.analyzeROI > 0:
         [rcx, rcy, rwidth, rheight] = bboxes[bidx] # this is bb
         cnt = 0
         for out in outs:
-            print("out.shape : ", out.shape)
+            if args.debugTextDetail:
+                print("out.shape : ", out.shape)
+
             for detection in out:
                 # if detection[4]>0.001:
                 scores = detection[5:]
@@ -377,10 +381,9 @@ while args.analyzeROI > 0:
         # draw each sub frame information
         if args.showImgDetail:
             subindices = cv.dnn.NMSBoxes(subboxes, subconfidences, confThreshold, nmsThreshold)
-            #debugFrame.all(0)
+            #debugFrame.fill(0)
             debugFrame = frame.copy()
-            subColor = colors[bidx]
-            cv.rectangle(debugFrame, (rcx, rcy), (rcx+rwidth, rcy+rheight), subColor, 2)
+            cv.rectangle(debugFrame, (rcx, rcy), (rcx+rwidth, rcy+rheight), (255, 0, 255), 2)
             #if args.showText:
             textLabel = 'Roi (x,y,width,height, # objs):({}, {}, {}, {}, #{}) in {} msec'.format(rcx, rcy, rwidth,
                                                                                                  rheight,
@@ -395,7 +398,7 @@ while args.analyzeROI > 0:
                 top = box[1]
                 width = box[2]
                 height = box[3]
-                drawPred(debugFrame, subclassIds[i], subconfidences[i], left, top, left + width, top + height, subColor)
+                drawPred(debugFrame, subclassIds[i], subconfidences[i], left, top, left + width, top + height, (0,255,0))
             #cv.imshow("subROI:"+str(sfidx), tmpFrame)
             cv.imshow("subROI", debugFrame)
             cv.waitKey(1)
