@@ -45,7 +45,7 @@ args.labelImg = "./images/demo_yolo.txt"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 0
 args.ps = 1
-args.showImgDetail = 0
+args.showImgDetail = 1
 args.showRoiImgDetail = 0
 args.showImgDetailText = 1
 args.debugTextDetail = 0
@@ -363,8 +363,8 @@ while args.analyzeROI > 0:
     else:
         print('no refPt !!!')
     nonZerotmask = cv.countNonZero(tmask)
-    curWsizeStep = np.max([2, int(inpWidth / sizeStep) + 10])  # current size step, min: 2*sizeStep 64 [-2]
-    curHsizeStep = np.max([2, int(inpHeight / sizeStep) + 10])  # current size step, min: 2*sizeStep 64 [-2]
+    curWsizeStep = np.max([2, int(inpWidth / sizeStep) -2])  # current size step, min: 2*sizeStep 64 [-2]
+    curHsizeStep = np.max([2, int(inpHeight / sizeStep) -2])  # current size step, min: 2*sizeStep 64 [-2]
     MaxSizeStep = np.min([int(frameWidth/sizeStep), int(frameHeight/sizeStep)])
     bboxes = []
     dstep = (curWsizeStep-curHsizeStep)
