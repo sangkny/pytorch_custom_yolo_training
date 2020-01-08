@@ -14,6 +14,9 @@ import os.path
 
 parser = argparse.ArgumentParser(description='ROI-based Object Detection using YOLOv3 in OPENCV')
 parser.add_argument('--image', help='Path to image file.')
+parser.add_argument('--labelImg', help='Path to Label image')
+parser.add_argument('--useLabelImg', type=int, default=1, help= 'flag to use label reference')
+parser.add_argument('--saveTxt', type = int, default = 1, help='flag to save object detection results')
 parser.add_argument('--video', help='Path to video file.')
 parser.add_argument('--showText', type=int, default=1, help='show text in the ouput.')
 parser.add_argument('--ps', type=int, default=1, help='stop each image in the screen.')
@@ -33,11 +36,12 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
-#modelBaseDir = "C:/Users/mmc/workspace/yolo"
-modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
+args.labelImg = "./images/demo_yolo.txt"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 0
 args.ps = 1
@@ -56,6 +60,21 @@ classes = None
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
+# load annotation information
+if not os.path.isfile(args.labelImg):
+    print("Label file ", args.labelImg, " doesn't exist")
+    sys.exit(1)
+
+# get ground truth labels
+GTBoxes = []  # [cx,cy, width, height]
+with open(args.labelImg, 'rt') as f:
+    gtLabels = f.read().rstrip('\n').split('\n')
+    # the is [classid, xcenter, ycenter, width, height] information
+    for gtl in gtLabels:
+        gtll = gtl.split(' ')[1:]  # throw the 0th (class id) element
+        btbox = [float(s) for s in gtll]
+        GTBoxes.append(btbox)
+
 # Give the configuration and weight files for the model and load the network using them.
 
 # modelConfiguration = "/data-ssd/sunita/snowman/darknet-yolov3.cfg";
@@ -67,6 +86,32 @@ modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final.weights"
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
 net.setPreferableTarget(cv.dnn.DNN_TARGET_OPENCL_FP16)
+
+def cvtXY2Yolo(size, box): # box is not normalized
+    dw = 1. / size[0]  # image width
+    dh = 1. / size[1]  # image height
+    x = (box[0] + box[1]) / 2.0  # x center
+    y = (box[2] + box[3]) / 2.0  # y center
+    w = box[1] - box[0]  # object width
+    h = box[3] - box[2]  # object height
+    x = x * dw
+    w = w * dw
+    y = y * dh
+    h = h * dh
+    return (round(x, 4), round(y, 4), round(w, 4), round(h, 4))  # xcen, ycen, width, height /image size
+
+def cvtYolo2XY(size, box): # box[cx, cy, width, heigh] is normalized
+    dw = size[0]  # image width
+    dh = size[1]  # image height
+    x = max(0, (box[0] - box[2]/2.0))      # x :left
+    y = max(0, (box[1] - box[3]/2.0))      # y : top
+    x = x*dw
+    y = y*dh
+    xx = x + box[2]*dw                    # right
+    yy = y + box[3]*dh                    # bottom
+    return (round(x), round(y), round(xx), round(yy))  # x, y, xx, yy without normalization
+
+
 """
 # import the necessary packages
 from collections import namedtuple
@@ -76,6 +121,21 @@ import cv2
 # define the `Detection` object
 Detection = namedtuple("Detection", ["image_path", "gt", "pred"])
 """
+def bb_union(boxA,boxB):
+  x = min(boxA[0], boxB[0])
+  y = min(boxA[1], boxB[1])
+  w = max(boxA[0]+boxA[2], boxB[0]+boxB[2]) - x
+  h = max(boxA[1]+boxA[3], boxB[1]+boxB[3]) - y
+  return (x, y, w, h)
+
+def bb_intersection(boxA,boxB):
+  x = max(boxA[0], boxB[0])
+  y = max(boxA[1], boxB[1])
+  w = min(boxA[0]+boxA[2], boxB[0]+boxB[2]) - x
+  h = min(boxA[1]+boxA[3], boxB[1]+boxB[3]) - y
+  if w<0 or h<0: return (0,0,0,0) #return () # or (0,0,0,0) ?
+  return (x, y, w, h)
+
 # IOU implementation
 def bb_intersection_over_union(boxA, boxB):
     # determine the (x, y)-coordinates of the intersection rectangle
@@ -198,6 +258,7 @@ winName = 'Select Best Object Detection Window in OpenCV'
 cv.namedWindow(winName, cv.WINDOW_AUTOSIZE)
 
 outputFile = "yolo_out_py.avi"
+outputFileTxt = "_roi_iou.txt"
 if (args.image):
     # Open the image file
     if not os.path.isfile(args.image):
@@ -205,6 +266,11 @@ if (args.image):
         sys.exit(1)
     cap = cv.VideoCapture(args.image)
     outputFile = args.image[:-4] + '_yolo_out_py.jpg'
+    outputFileTxt = args.image[:-4] +'__roi_iou.txt'
+    outInfoFile = open(outputFileTxt, 'wt')
+    ## print (classIndex, xcen, ycen, w, h)
+    #outInfoFile.write("%.6f %.6f %.6f %.6f\n" % (xcen, ycen, w, h))
+
 elif (args.video):
     # Open the video file
     if not os.path.isfile(args.video):
@@ -240,6 +306,7 @@ while args.analyzeROI > 0:
         else:
             cv.waitKey(1)
         break
+
     # create mask with mouse selection
     if args.roiMouseInput:
         image = frame.copy()
@@ -337,7 +404,20 @@ while args.analyzeROI > 0:
                     cv.imshow('intersection', inter)
                     cv.waitKey(1)
                 if area_ratio >= overLapRatio:
-                    bboxes.append((xi, yi, brw, brh))
+                    # test if the given ROI contains locations of GT
+                    boxcnt = 0;
+                    for gtbox in GTBoxes:
+                        boxA = [xi,yi, xi+brw, yi+brh]
+                        boxB = cvtYolo2XY([frameWidth,frameHeight], gtbox)
+                        boxI = bb_intersection(boxA, boxB)
+                        boxcnt += (
+                            1 if boxI[0] == boxB[0] and boxI[1] == boxB[1] and boxI[2] == boxB[2] and boxI[3] == boxB[
+                                3] else 0)
+                        cv.rectangle(inter, (boxB[0], boxB[1]), (boxB[2], boxB[3]), (255, 0, 255), 2)
+                        cv.imshow('boxB', inter)
+                        cv.waitKey(1)
+                    if boxcnt > int(len(GTBoxes)*0.3): # 1/3  약 5개
+                        bboxes.append((xi, yi, brw, brh))
 
     print('# of candidates : {} regions'.format(len(bboxes)))
     if args.debugTextDetail:
@@ -349,7 +429,7 @@ while args.analyzeROI > 0:
     boxes = []
     etimes = [] # elapse time for net.forward
     debugFrame = frame.copy()
-    bboxes = bboxes[100:]
+    #bboxes = bboxes[100:]
     for bidx, bb in enumerate(bboxes):
         [bx, by, bwidth, bheight] = bb
         subFrame = frame[by:by + bheight, bx:bx + bwidth]
@@ -377,10 +457,11 @@ while args.analyzeROI > 0:
         # corrent only center positions   [x,y, width, height] is  [detection[0], detection[1], detection[2], detection[3]]
         [rcx, rcy, rwidth, rheight] = bboxes[bidx] # this is bb
         cnt = 0
+        # save information
+
         for out in outs:
             if args.debugTextDetail:
                 print("out.shape : ", out.shape)
-
             for detection in out:
                 # if detection[4]>0.001:
                 scores = detection[5:]
@@ -405,23 +486,22 @@ while args.analyzeROI > 0:
                     subclassIds.append(classId)
                     subconfidences.append(float(confidence))
                     subboxes.append([left, top, width, height])
-
                     cnt = cnt + 1
         print('# of candidates for {}-th roi: {}'.format(bidx, cnt))
-
+        if args.saveTxt or args.showImgDetail:
         # draw each sub frame information
-        if args.showImgDetail:
             subindices = cv.dnn.NMSBoxes(subboxes, subconfidences, confThreshold, nmsThreshold)
-            #debugFrame.fill(0)
-            debugFrame = frame.copy()
-            cv.rectangle(debugFrame, (rcx, rcy), (rcx+rwidth, rcy+rheight), (255, 0, 255), 2)
-            #if args.showText:
-            textLabel = 'Roi (x,y,width,height, # objs):({}, {}, {}, {}, #{}) in {} msec'.format(rcx, rcy, rwidth,
-                                                                                                 rheight,
-                                                                                                 len(subindices),
-                                                                                                 str(tlabel))
-            cv.putText(debugFrame, textLabel, (rcx, rcy-10), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
-
+            if args.showImgDetail:
+                # debugFrame.fill(0)
+                debugFrame = frame.copy()
+                cv.rectangle(debugFrame, (rcx, rcy), (rcx+rwidth, rcy+rheight), (255, 0, 255), 2)
+                #if args.showText:
+                textLabel = 'Roi (x,y,width,height, # objs):({}, {}, {}, {}, #{}) in {} msec'.format(rcx, rcy, rwidth,
+                                                                                                     rheight,
+                                                                                                     len(subindices),
+                                                                                                     str(tlabel))
+                cv.putText(debugFrame, textLabel, (rcx, rcy-10), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
+            roi_ious = []
             for i in subindices:
                 i = i[0]
                 box = subboxes[i]
@@ -429,10 +509,22 @@ while args.analyzeROI > 0:
                 top = box[1]
                 width = box[2]
                 height = box[3]
-                drawPred(debugFrame, subclassIds[i], subconfidences[i], left, top, left + width, top + height, (0,255,0))
-            #cv.imshow("subROI:"+str(sfidx), tmpFrame)
-            cv.imshow("subROI", debugFrame)
-            cv.waitKey(1)
+                # search GT and compute IOU to find out the corresponding objects
+                boxB = [left, top, left+width, top+height]
+                #roi_ious=[idx if bb_intersection_over_union(boxB, cvtYolo2XY([frameWidth, frameHeight], gtbox)) > 0.5 else '' for idx, gtbox in enumerate(GTBoxes)]
+                for idx, gtbox in enumerate(GTBoxes):
+                    if bb_intersection_over_union(boxB, cvtYolo2XY([frameWidth, frameHeight], gtbox)) > 0.5:
+                        roi_ious.append(idx)
+
+                if args.showImgDetail:
+                    drawPred(debugFrame, subclassIds[i], subconfidences[i], left, top, left + width, top + height, (0,255,0))
+
+            if args.showImgDetail:
+                # cv.imshow("subROI:"+str(sfidx), tmpFrame)
+                cv.imshow("subROI", debugFrame)
+                cv.waitKey(1)
+
+            # put the roi_iou_information
 
     # Perform non maximum suppression to eliminate redundant overlapping boxes with
     # lower confidences.
@@ -464,6 +556,8 @@ while args.analyzeROI > 0:
     else:
         vid_writer.write(frame.astype(np.uint8))
 
+    # close the file
+    outInfoFile.close()  # roi iou information
     cv.imshow(winName, frame)
     cv.waitKey(1)
     args.analysisROI = 0

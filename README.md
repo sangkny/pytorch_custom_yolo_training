@@ -8,6 +8,7 @@
 - To test the model, please use `python object_detect_yolov3.py` after editting the file for a target image
 - To test roi-based object, please use `python roi_object_detecton_yolov3.py` with single image 
 - To Analyze roi-based object detection, please use `python analysis_roi_object_detection_yolov3.py` with an input and its annotated data.
+> > + IOU computation and ROI selection algorithm has been included 
 
 ##### Under ubuntu training,
     train.txt val.txt should have only linefeed (\r) ended format in linux unlike LF\CR in windows.
