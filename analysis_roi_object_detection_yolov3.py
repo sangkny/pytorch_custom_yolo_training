@@ -36,8 +36,8 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
-modelBaseDir = "C:/Users/mmc/workspace/yolo"
-#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+#modelBaseDir = "C:/Users/mmc/workspace/yolo"
+modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
@@ -45,7 +45,7 @@ args.labelImg = "./images/demo_yolo.txt"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 0
 args.ps = 1
-args.showImgDetail = 1
+args.showImgDetail = 0
 args.showRoiImgDetail = 0
 args.showImgDetailText = 1
 args.debugTextDetail = 0
@@ -405,7 +405,7 @@ while args.analyzeROI > 0:
                     cv.waitKey(1)
                 if area_ratio >= overLapRatio:
                     # test if the given ROI contains locations of GT
-                    boxcnt = 0;
+                    boxcnt = 0
                     for gtbox in GTBoxes:
                         boxA = [xi,yi, xi+brw, yi+brh]
                         boxB = cvtYolo2XY([frameWidth,frameHeight], gtbox)
@@ -413,9 +413,9 @@ while args.analyzeROI > 0:
                         boxcnt += (
                             1 if boxI[0] == boxB[0] and boxI[1] == boxB[1] and boxI[2] == boxB[2] and boxI[3] == boxB[
                                 3] else 0)
-                        cv.rectangle(inter, (boxB[0], boxB[1]), (boxB[2], boxB[3]), (255, 0, 255), 2)
-                        cv.imshow('boxB', inter)
-                        cv.waitKey(1)
+                        # cv.rectangle(inter, (boxB[0], boxB[1]), (boxB[2], boxB[3]), (255, 0, 255), 2)
+                        # cv.imshow('boxB', inter)
+                        # cv.waitKey(1)
                     if boxcnt > int(len(GTBoxes)*0.3): # 1/3  약 5개
                         bboxes.append((xi, yi, brw, brh))
 
@@ -434,7 +434,6 @@ while args.analyzeROI > 0:
         [bx, by, bwidth, bheight] = bb
         subFrame = frame[by:by + bheight, bx:bx + bwidth]
         subFrame = cv.resize(subFrame, (inpWidth, inpHeight))
-
         # sub frame information
         subclassIds = []
         subconfidences = []
@@ -458,7 +457,6 @@ while args.analyzeROI > 0:
         [rcx, rcy, rwidth, rheight] = bboxes[bidx] # this is bb
         cnt = 0
         # save information
-
         for out in outs:
             if args.debugTextDetail:
                 print("out.shape : ", out.shape)
@@ -488,7 +486,9 @@ while args.analyzeROI > 0:
                     subboxes.append([left, top, width, height])
                     cnt = cnt + 1
         print('# of candidates for {}-th roi: {}'.format(bidx, cnt))
+
         if args.saveTxt or args.showImgDetail:
+            roi_ious = []
         # draw each sub frame information
             subindices = cv.dnn.NMSBoxes(subboxes, subconfidences, confThreshold, nmsThreshold)
             if args.showImgDetail:
@@ -501,7 +501,6 @@ while args.analyzeROI > 0:
                                                                                                      len(subindices),
                                                                                                      str(tlabel))
                 cv.putText(debugFrame, textLabel, (rcx, rcy-10), cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 0), 2)
-            roi_ious = []
             for i in subindices:
                 i = i[0]
                 box = subboxes[i]
@@ -525,6 +524,13 @@ while args.analyzeROI > 0:
                 cv.waitKey(1)
 
             # put the roi_iou_information
+            if len(roi_ious) > 0:
+                #outInfoFile.write("%.6f %.6f %.6f %.6f\n" % (xcen, ycen, w, h))
+                lineText = "%d %d %d %d"%(bx, by, brw, brh) # roi box (x,y, width, height)
+                for idx in range(0, len(roi_ious)):
+                    lineText = lineText + ' ' + str(roi_ious[idx])
+                lineText = lineText + '\n'
+                outInfoFile.write(lineText)
 
     # Perform non maximum suppression to eliminate redundant overlapping boxes with
     # lower confidences.
