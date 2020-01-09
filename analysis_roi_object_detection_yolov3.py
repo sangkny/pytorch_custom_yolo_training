@@ -36,8 +36,8 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
-#modelBaseDir = "C:/Users/mmc/workspace/yolo"
-modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 args.image = "./images/demo.jpg"
@@ -526,7 +526,7 @@ while args.analyzeROI > 0:
             # put the roi_iou_information
             if len(roi_ious) > 0:
                 #outInfoFile.write("%.6f %.6f %.6f %.6f\n" % (xcen, ycen, w, h))
-                lineText = "%d %d %d %d"%(bx, by, brw, brh) # roi box (x,y, width, height)
+                lineText = "%d %d %d %d"%(bx, by, bwidth, bheight) # roi box (x,y, width, height)
                 for idx in range(0, len(roi_ious)):
                     lineText = lineText + ' ' + str(roi_ious[idx])
                 lineText = lineText + '\n'
