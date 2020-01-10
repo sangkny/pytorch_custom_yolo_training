@@ -40,8 +40,8 @@ modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.image = "./images/demo.jpg"
-args.labelImg = "./images/demo_yolo.txt"
+args.image = "./images/demo_v1.jpg"
+args.labelImg = "./images/demo_yolo_v1.txt"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 0
 args.ps = 1
@@ -347,7 +347,8 @@ while args.analyzeROI > 0:
         cv.destroyWindow("ROI")
         cv.destroyWindow("image")
     else: # use default ROI Region
-        refPt = [(284, 130), (1783, 827), (261, 954), (238, 134)]
+        # refPt = [(284, 130), (1783, 827), (261, 954), (238, 134)] # for demo
+        refPt = [(910, 36), (982, 39), (305, 648), (9, 281)] # for demo_v1
 
     # create the possible ROI with spatial step and Size
     # loop for multi-block roi -----------------------

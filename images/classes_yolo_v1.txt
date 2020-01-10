@@ -1,0 +1,23 @@
+dog
+person
+cat
+tv
+car
+meatballs
+marinara sauce
+tomato soup
+chicken noodle soup
+french onion soup
+chicken breast
+ribs
+pulled pork
+hamburger
+cavity
+heavytruck_5
+suv_2
+sadan_1
+bus_4
+truck_3
+heavytruck_reverse_10
+suv_reverse_7
+truck_reverse_8
