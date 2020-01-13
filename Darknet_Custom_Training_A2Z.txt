@@ -1,19 +1,21 @@
 last updated on 20201017
-
+------------------->>>> yolov3 train options <<<<-------------------------------
 ./darknet detector train /path/to/snowman/darknet.data /path/to/snowman/darknet-yolov3.cfg ./darknet53.conv.74 > /path/to/snowman/train.log
 
 ./darknet detector train /workspace/yolo/config/coco.data /workspace/yolo/config/snowman-yolov3.cfg /workspace/yolo/config/yolov3.weights > /workspace/yolo/data/snowman/train.log
 
 ./darknet detector train /workspace/yolo/config/itms-darknet.data /workspace/yolo/config/itms-dark-yolov3.cfg /workspace/yolo/config/darknet53.conv.74 2>&1 |tee /workspace/yolo/data/itms/itms-train.log
 
+------------------->>>> convert end-of-line according to OS <<<------------------
 dos2unix
+
 5.	awk
 To use awk to convert a Windows file to Unix, enter:
  awk '{ sub("\r$", ""); print }' winfile.txt > unixfile.txt
 To convert a Unix file to Windows, enter:
  awk 'sub("$", "\r")' unixfile.txt > winfile.txt
 Older versions of awk do not include the sub function. In such cases, use the same command, but replace awk with gawk or nawk
-6.	vi
+6.	vi editor
 In vi, you can remove carriage return ( ^M ) characters with the following command:
  :1,$s/^M//g
 To input the ^M character, press Ctrl-v, and then press Enter or return.
@@ -26,21 +28,21 @@ In vim, use :set ff=unix to convert to Unix; use :set ff=dos to convert to Windo
 8.	http://www.dreamy.pe.kr/zbxe/CodeClip/165521 에서 vi 창에서 바꾸기
 
 
-#####---- procedures ----- ######
+#####---- overall yolov3 training procedures ----- ######
 1. annotate images xml or txt
-2. use convert2Bo 
+2. use convert2Bo repository: specifically, itms_yolo.py
 	a. edit classes.names
-	b. converting xml to txt for v3
-3. use SplitTrainAndTest.py in pytorch_custom_yolo_trainin git
+	b. converting xml to txt for v3 using itms_yolo.py in convert2Bo repository
+3. use SplitTrainAndTest.py in pytorch_custom_yolo_training repository
 4. edit configure files in config
 	a. edit classes.names
-	b. edit itms-yolov3.cfg 
+	b. edit itms-dark-yolov3.cfg
 		ba. class numbers and 
-		bb. filter numbers
-5. use docker to run darknet
-6. if you have file format problems, please refer the aboven comments.
+		bb. filter numbers aroun [yolo]
+5. use docker to run darknet (sudo nvidia-docker run -it -v ~/workspace:/workspace sangkny/darknet:10.1-cudnn7.1-devel~ /bin/bash)
+6. if you have file format problems, please refer the above comments.
 
-
+-------------------------->> Best Description to conduct train/test Yolov3 step-by-step <<------------------------------
 0.	Convert2Bo repository 
 	A.	Annotation converting from xml file
 1.	Pytorch_custom_yolo_training repository
@@ -49,15 +51,20 @@ In vim, use :set ff=unix to convert to Unix; use :set ff=dos to convert to Windo
 	C.	In pytorch: train.py for training and converting. However, if you use Docker
 		i.	sudo nvidia-docker run –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash
 		ii.	inside docker,
-			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file 2>&1 | tee train.log`
+			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file 2>&1 | tee train.log
 	D.	plotAccLoss.py 
 		i.	to see the Acc/Loss plot
 	E.	python object_detect_yolov3.py
 		i.	to test the model after editing the file for a target image
+	F.  python roi_object_detect_yolov3.py
+	    i.  to test roi-based detection results
+	    ii. to select region for ROI
+	G. python analysis_roi_detection_yolov3.py
+	    i.  to select best performance region automatically
+	    ii. to inspect some information for debugging
 2.	Yolov3 repository
 	A.	It was done with only CPU
 	B.	It is fitted for mobile phone and efficient development for yolov3
 	C.	It provides a convert tool fro pyTorch to yolov3 and vice versa.
-
 
 	

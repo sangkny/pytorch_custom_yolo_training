@@ -28,11 +28,11 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 gtObjectNums = 16       # ground truth object numbers in the given demo file
 optRoiNum = 2           # optimal roi numbers
 
-modelBaseDir = "C:/Users/mmc/workspace/yolo"
-#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+#modelBaseDir = "C:/Users/mmc/workspace/yolo"
+modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 
-args.image = "./images/demo.jpg"
-args.roiObjects = "./images/demo__roi_iou.txt"
+args.image = "./images/demo_v1.jpg"
+args.roiObjects = "./images/demo_v1__roi_iou.txt"
 
 args.saveImg = 1
 args.showImgDetail = 1
@@ -147,7 +147,11 @@ for itidx, itcombs in enumerate(itemcombs): # (itcombs1, itcombs2)  in itemcombs
             cv.imshow('Seleted ROIs', debugFrame)
             cv.waitKey(1)
         if(args.debugTextDetail):
-            print('Best score: '+'%.2f'%bestScore+', union:'+'{}'.format(bestUnion)+', roi_dist:'+'%.2f'%(best_roi_dist / Max_roi_dist))
+            print('Best score: ' + '%.2f' % bestScore
+                  + ', boxA:' + '{}'.format(list(ROIObjects[boxAidx]))
+                  + ', boxB:' + '{}'.format(list(ROIObjects[boxBidx]))
+                  + ', union:' + '{}'.format(bestUnion)
+                  + ', roi_dist:' + '%.2f' % (best_roi_dist / Max_roi_dist))
     # processing indicator
     if args.debugTextDetail and (itidx % processing_step == 0):
         print('processing :' + '%.2f' %(itidx/total_combs*100) + '%')
