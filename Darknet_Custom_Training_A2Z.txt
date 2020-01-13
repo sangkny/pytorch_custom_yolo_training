@@ -1,0 +1,63 @@
+last updated on 20201017
+
+./darknet detector train /path/to/snowman/darknet.data /path/to/snowman/darknet-yolov3.cfg ./darknet53.conv.74 > /path/to/snowman/train.log
+
+./darknet detector train /workspace/yolo/config/coco.data /workspace/yolo/config/snowman-yolov3.cfg /workspace/yolo/config/yolov3.weights > /workspace/yolo/data/snowman/train.log
+
+./darknet detector train /workspace/yolo/config/itms-darknet.data /workspace/yolo/config/itms-dark-yolov3.cfg /workspace/yolo/config/darknet53.conv.74 2>&1 |tee /workspace/yolo/data/itms/itms-train.log
+
+dos2unix
+5.	awk
+To use awk to convert a Windows file to Unix, enter:
+ awk '{ sub("\r$", ""); print }' winfile.txt > unixfile.txt
+To convert a Unix file to Windows, enter:
+ awk 'sub("$", "\r")' unixfile.txt > winfile.txt
+Older versions of awk do not include the sub function. In such cases, use the same command, but replace awk with gawk or nawk
+6.	vi
+In vi, you can remove carriage return ( ^M ) characters with the following command:
+ :1,$s/^M//g
+To input the ^M character, press Ctrl-v, and then press Enter or return.
+In vim, use :set ff=unix to convert to Unix; use :set ff=dos to convert to Windows. 
+
+7.	dos2unix로 한꺼번에 해결하기(역으로 unix2dos도 같은방법으로 사용가능)
+	$find . –name ‘*.[ch]’ –print | xargs dos2unix // .c 나 .h로 끝나는 파일들 변환.
+	여기서 사용한 xargs 는 stdin에 파라미터로 들어가게 된다. 즉, command arguments (argv[1], argv[2] …형식)
+	
+8.	http://www.dreamy.pe.kr/zbxe/CodeClip/165521 에서 vi 창에서 바꾸기
+
+
+#####---- procedures ----- ######
+1. annotate images xml or txt
+2. use convert2Bo 
+	a. edit classes.names
+	b. converting xml to txt for v3
+3. use SplitTrainAndTest.py in pytorch_custom_yolo_trainin git
+4. edit configure files in config
+	a. edit classes.names
+	b. edit itms-yolov3.cfg 
+		ba. class numbers and 
+		bb. filter numbers
+5. use docker to run darknet
+6. if you have file format problems, please refer the aboven comments.
+
+
+0.	Convert2Bo repository 
+	A.	Annotation converting from xml file
+1.	Pytorch_custom_yolo_training repository
+	A.	splitTrainAndTest.py
+	B.	set the configuration (yolo/config) and data (yolo/data/classes.names and train.txt, test.txt with images/labels folders, please see the /workspace/yolo/)
+	C.	In pytorch: train.py for training and converting. However, if you use Docker
+		i.	sudo nvidia-docker run –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash
+		ii.	inside docker,
+			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file 2>&1 | tee train.log`
+	D.	plotAccLoss.py 
+		i.	to see the Acc/Loss plot
+	E.	python object_detect_yolov3.py
+		i.	to test the model after editing the file for a target image
+2.	Yolov3 repository
+	A.	It was done with only CPU
+	B.	It is fitted for mobile phone and efficient development for yolov3
+	C.	It provides a convert tool fro pyTorch to yolov3 and vice versa.
+
+
+	
