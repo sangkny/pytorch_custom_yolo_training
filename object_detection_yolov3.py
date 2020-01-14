@@ -26,11 +26,11 @@ inpHeight = 32*9 # 608     #Height of network's input image # 288(32*9) best
 
 modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
-#rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
+args.image = modelBaseDir + "/data/itms/images/20180911_115711_cam_0_001110.jpg" #4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.image = "./images/demo2.jpg"
+#args.image = "./images/demo2.jpg"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
-args.showText = 0
+args.showText = 1
 args.ps = 1
 
 # Load names of classes
@@ -45,7 +45,7 @@ with open(classesFile, 'rt') as f:
 # modelWeights = "/data-ssd/sunita/snowman/darknet-yolov3_final.weights";
 
 modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final.weights"
+modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)

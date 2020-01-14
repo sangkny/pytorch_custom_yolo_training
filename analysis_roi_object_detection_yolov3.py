@@ -36,19 +36,23 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
-#modelBaseDir = "C:/Users/mmc/workspace/yolo"
-modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.image = "./images/demo_v1.jpg"
-args.labelImg = "./images/demo_yolo_v1.txt"
+# for demo.jpg and its labelImg
+args.image = "./images/demo.jpg"
+args.labelImg = "./images/demo_yolo.txt"
+# for demo_v1.jpg and its labelImg
+# args.image = "./images/demo_v1.jpg"
+# args.labelImg = "./images/demo_yolo_v1.txt"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 0
 args.ps = 1
 args.showImgDetail = 1
 args.showRoiImgDetail = 0
-args.showImgDetailText = 1
-args.debugTextDetail = 0
+args.showImgDetailText = 0
+args.debugTextDetail = 1
 args.analyzeROI = 1
 args.roiMouseInput = 0
 
@@ -81,7 +85,7 @@ with open(args.labelImg, 'rt') as f:
 # modelWeights = "/data-ssd/sunita/snowman/darknet-yolov3_final.weights";
 
 modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final.weights"
+modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
@@ -265,8 +269,8 @@ if (args.image):
         print("Input image file ", args.image, " doesn't exist")
         sys.exit(1)
     cap = cv.VideoCapture(args.image)
-    outputFile = args.image[:-4] + '_yolo_out_py.jpg'
-    outputFileTxt = args.image[:-4] +'__roi_iou.txt'
+    outputFile = args.image[:-4] + '_yolo_out_py_20200113.jpg'
+    outputFileTxt = args.image[:-4] +'__roi_iou_20200113.txt'
     outInfoFile = open(outputFileTxt, 'wt')
     ## print (classIndex, xcen, ycen, w, h)
     #outInfoFile.write("%.6f %.6f %.6f %.6f\n" % (xcen, ycen, w, h))
@@ -347,8 +351,8 @@ while args.analyzeROI > 0:
         cv.destroyWindow("ROI")
         cv.destroyWindow("image")
     else: # use default ROI Region
-        # refPt = [(284, 130), (1783, 827), (261, 954), (238, 134)] # for demo
-        refPt = [(910, 36), (982, 39), (305, 648), (9, 281)] # for demo_v1
+        refPt = [(284, 130), (1783, 827), (261, 954), (238, 134)] # for demo
+        #refPt = [(910, 36), (982, 39), (305, 648), (9, 281)] # for demo_v1
 
     # create the possible ROI with spatial step and Size
     # loop for multi-block roi -----------------------

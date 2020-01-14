@@ -50,7 +50,7 @@ with open(classesFile, 'rt') as f:
 # modelWeights = "/data-ssd/sunita/snowman/darknet-yolov3_final.weights";
 
 modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final.weights"
+modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
@@ -144,7 +144,7 @@ if (args.image):
         print("Input image file ", args.image, " doesn't exist")
         sys.exit(1)
     cap = cv.VideoCapture(args.image)
-    outputFile = args.image[:-4] + '_yolo_out_py.jpg'
+    outputFile = args.image[:-4] + '_yolo_out_py_20200113.jpg'
 elif (args.video):
     # Open the video file
     if not os.path.isfile(args.video):

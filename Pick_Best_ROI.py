@@ -31,8 +31,12 @@ optRoiNum = 2           # optimal roi numbers
 #modelBaseDir = "C:/Users/mmc/workspace/yolo"
 modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 
-args.image = "./images/demo_v1.jpg"
-args.roiObjects = "./images/demo_v1__roi_iou.txt"
+args.image = "./images/demo.jpg"
+args.roiObjects = "./images/demo__roi_iou_20200113.txt"
+# args.image = "./images/demo_v1.jpg"
+# #args.roiObjects = "./images/demo_v1__roi_iou.txt" #demo_v1__roi_iou_20200113
+# args.roiObjects = "./images/demo_v1__roi_iou_20200113.txt"
+
 
 args.saveImg = 1
 args.showImgDetail = 1
@@ -168,6 +172,6 @@ drawBox(debugFrame, boxB, '%s' % list(ROIObjects[boxBidx]))
 cv.imshow('Seleted ROIs', debugFrame)
 cv.waitKey(0)
 if args.saveImg and args.image :
-    saveImgFile = args.image[:-4] + "_bestRoi.jpg"
+    saveImgFile = args.image[:-4] + "_bestRoi_20200113.jpg"
     cv.imwrite(saveImgFile, debugFrame)
     print('Result has been save: {}'.format(saveImgFile))
