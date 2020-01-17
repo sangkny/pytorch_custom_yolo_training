@@ -47,6 +47,11 @@ args.labelImg = "./images/demo_yolo.txt"
 # args.image = "./images/demo_v1.jpg"
 # args.labelImg = "./images/demo_yolo_v1.txt"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
+
+#for demo4
+args.image = "./images/demo4.jpg"
+args.labelImg = "./images/demo4.txt"
+
 args.showText = 0
 args.ps = 1
 args.showImgDetail = 1
@@ -54,7 +59,7 @@ args.showRoiImgDetail = 0
 args.showImgDetailText = 0
 args.debugTextDetail = 1
 args.analyzeROI = 1
-args.roiMouseInput = 0
+args.roiMouseInput = 1
 
 
 

@@ -31,11 +31,14 @@ optRoiNum = 2           # optimal roi numbers
 #modelBaseDir = "C:/Users/mmc/workspace/yolo"
 modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 
-args.image = "./images/demo.jpg"
-args.roiObjects = "./images/demo__roi_iou_20200113.txt"
+# args.image = "./images/demo.jpg"
+# args.roiObjects = "./images/demo__roi_iou_20200113.txt"
 # args.image = "./images/demo_v1.jpg"
 # #args.roiObjects = "./images/demo_v1__roi_iou.txt" #demo_v1__roi_iou_20200113
 # args.roiObjects = "./images/demo_v1__roi_iou_20200113.txt"
+
+args.image = "./images/demo4.jpg"
+args.roiObjects = "./images/demo4__roi_iou_20200113.txt"
 
 
 args.saveImg = 1

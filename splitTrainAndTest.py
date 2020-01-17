@@ -20,8 +20,10 @@ args.use_in_windows = False
 def split_data_set(arg):
     use_target_dir = arg.use_target_dir
     use_in_windows = arg.use_in_windows
-    f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200117.txt", 'w')
-    f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200117.txt", 'w')
+    newLineSymbol = '\r\n' if use_in_windows else '\n' # for windows
+
+    f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200117.txt", 'w', newline=newLineSymbol)
+    f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200117.txt", 'w', newline=newLineSymbol)
     image_dir = arg.image_dir
     target_dir = arg.target_dir # ""
     path, dirs, files = next(os.walk(image_dir))
@@ -43,7 +45,7 @@ def split_data_set(arg):
                         f_val.write(target_dir + '/' + f + '\n')  # windows for unix '\n'
                 else:
                     if(use_in_windows):
-                        f_val.write(image_dir + '/' + f + '\r\n') # windows for unix '\r'
+                        f_val.write(image_dir + '/' + f + '\r\n') # windows for unix '\r\n'
                     else:
                         f_val.write(image_dir + '/' + f + '\n')  # windows for unix '\n'
             else:
@@ -56,7 +58,7 @@ def split_data_set(arg):
                     if(use_in_windows):
                         f_train.write(image_dir + '/' + f + '\r\n')
                     else:
-                        f_train.write(image_dir + '/' + f + '\n')  # \r only for mac
+                        f_train.write(image_dir + '/' + f + '\n')  # \n only for mac
     f_val.close()
     f_train.close()
 

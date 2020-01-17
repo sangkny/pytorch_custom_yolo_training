@@ -15,8 +15,8 @@ parser.add_argument("--out", type=str, default="./data/training_loss_plot.png", 
 opt = parser.parse_args()
 
 # parameter settings
-opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train_20200114.log"
-opt.out = "C:/Users/mmc/workspace/yolo/data/itms/itms-train_20200114-train-loss-plot.png"
+opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train_20200115.log"
+opt.out = "C:/Users/mmc/workspace/yolo/data/itms/itms-train_20200115-train-loss-plot.png"
 
 logFile = opt.input;
 showImgFlag = opt.showImgFlag
