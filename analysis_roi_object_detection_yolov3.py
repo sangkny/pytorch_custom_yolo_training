@@ -89,8 +89,10 @@ with open(args.labelImg, 'rt') as f:
 # modelConfiguration = "/data-ssd/sunita/snowman/darknet-yolov3.cfg";
 # modelWeights = "/data-ssd/sunita/snowman/darknet-yolov3_final.weights";
 
-modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
+# modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
+# modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
+modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny.cfg"
+modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_30000.weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)

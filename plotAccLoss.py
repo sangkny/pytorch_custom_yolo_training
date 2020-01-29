@@ -15,8 +15,8 @@ parser.add_argument("--out", type=str, default="./data/training_loss_plot.png", 
 opt = parser.parse_args()
 
 # parameter settings
-opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train_20200115.log"
-opt.out = "C:/Users/mmc/workspace/yolo/data/itms/itms-train_20200115-train-loss-plot.png"
+opt.input = "C:/Users/mmc/workspace/yolo/data/itms/train_20200128_tiny.log"
+opt.out = "C:/Users/mmc/workspace/yolo/data/itms/train_20200128_tiny-train-loss-plot.png"
 
 logFile = opt.input;
 showImgFlag = opt.showImgFlag
@@ -36,12 +36,15 @@ avg_loss = []
 print('Retrieving data and plotting training loss graph...')
 for i in range(len(lines)):
     lineParts = lines[i].split(',')
+    if "weights" in lineParts:
+        print('Saving is found in line {}'.format(i))
     iterations.append(int(lineParts[0].split(':')[0]))
     avg_loss.append(float(lineParts[1].split()[0]))
 
 fig = plt.figure()
-for i in range(0, len(lines)):
-    plt.plot(iterations[i:i+2], avg_loss[i:i+2], 'r.-')
+#for i in range(0, len(lines)):
+#    plt.plot(iterations[i:i+2], avg_loss[i:i+2], 'r.-')
+plt.plot(iterations, avg_loss, 'r.-')
 
 plt.xlabel('Batch Number')
 plt.ylabel('Avg Loss')
@@ -51,3 +54,9 @@ if saveImgFlag:
     fig.savefig(outFile, dpi=1000)
 
 print('Done! Plot saved as {}'.format(outFile))
+#compute min location
+import numpy as np
+idx = np.argmin(avg_loss)
+loss = avg_loss[idx]
+iter_number = iterations[idx]
+print('minimum loss value is {} at {} iteration'.format(loss, iter_number))
