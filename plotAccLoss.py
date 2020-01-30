@@ -15,8 +15,8 @@ parser.add_argument("--out", type=str, default="./data/training_loss_plot.png", 
 opt = parser.parse_args()
 
 # parameter settings
-opt.input = "C:/Users/mmc/workspace/yolo/data/itms/train_20200128_tiny.log"
-opt.out = "C:/Users/mmc/workspace/yolo/data/itms/train_20200128_tiny-train-loss-plot.png"
+opt.input = "C:/Users/mmc/workspace/yolo/data/itms/train_20200130_tiny_3l.log"
+opt.out = "C:/Users/mmc/workspace/yolo/data/itms/train_20200130_tiny_3l-train-loss-plot.png"
 
 logFile = opt.input;
 showImgFlag = opt.showImgFlag
@@ -36,8 +36,8 @@ avg_loss = []
 print('Retrieving data and plotting training loss graph...')
 for i in range(len(lines)):
     lineParts = lines[i].split(',')
-    if "weights" in lineParts:
-        print('Saving is found in line {}'.format(i))
+    if "nan" in lineParts:
+        print('nan is found in line {}'.format(i))
     iterations.append(int(lineParts[0].split(':')[0]))
     avg_loss.append(float(lineParts[1].split()[0]))
 
