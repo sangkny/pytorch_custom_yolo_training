@@ -36,10 +36,13 @@ avg_loss = []
 print('Retrieving data and plotting training loss graph...')
 for i in range(len(lines)):
     lineParts = lines[i].split(',')
-    if "nan" in lineParts:
-        print('nan is found in line {}'.format(i))
-    iterations.append(int(lineParts[0].split(':')[0]))
-    avg_loss.append(float(lineParts[1].split()[0]))
+    if ":" in lineParts[0]:
+        try:
+            iterations.append(int(lineParts[0].split(':')[0]))
+        except:
+            print('read Error at line# {} : {}'.format(i, lineParts))
+            continue
+        avg_loss.append(float(lineParts[1].split()[0]))
 
 fig = plt.figure()
 #for i in range(0, len(lines)):
