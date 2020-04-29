@@ -12,18 +12,26 @@ parser.add_argument('--use_in_windows', type=int, default=0, help='Flag to use i
 args = parser.parse_args()
 
 # temp parameter settings
+# edit the following options to locate the source and target locations for training
 args.image_dir = "C:/Users/mmc/workspace/yolo/data/itms/images"     # absolute path which contains origial images
 args.target_dir = "/workspace/yolo/data/itms/images"                # relative path in ubuntu
 args.use_target_dir = True
 args.use_in_windows = False
 
+# edit the val/train file names for training
 def split_data_set(arg):
     use_target_dir = arg.use_target_dir
     use_in_windows = arg.use_in_windows
     newLineSymbol = '\r\n' if use_in_windows else '\n' # for windows
 
-    f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200117.txt", 'w', newline=newLineSymbol)
-    f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200117.txt", 'w', newline=newLineSymbol)
+    # -- 20200117 ----
+    # f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200117.txt", 'w', newline=newLineSymbol)
+    # f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200117.txt", 'w', newline=newLineSymbol)
+
+    # -- 20200427 ----
+    f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200427.txt", 'w', newline=newLineSymbol)
+    f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200427.txt", 'w', newline=newLineSymbol)
+
     image_dir = arg.image_dir
     target_dir = arg.target_dir # ""
     path, dirs, files = next(os.walk(image_dir))

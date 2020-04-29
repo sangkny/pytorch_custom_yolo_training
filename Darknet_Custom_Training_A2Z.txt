@@ -1,4 +1,4 @@
-last updated on 20201017
+last updated on 20200117
 ------------------->>>> yolov3 train options <<<<-------------------------------
 ./darknet detector train /path/to/snowman/darknet.data /path/to/snowman/darknet-yolov3.cfg ./darknet53.conv.74 > /path/to/snowman/train.log
 
