@@ -41,16 +41,16 @@ modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 # for demo.jpg and its labelImg
-args.image = "./images/demo.jpg"
-args.labelImg = "./images/demo_yolo.txt"
+# args.image = "./images/demo.jpg"
+# args.labelImg = "./images/demo_yolo.txt"
 # for demo_v1.jpg and its labelImg
 # args.image = "./images/demo_v1.jpg"
 # args.labelImg = "./images/demo_yolo_v1.txt"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 
 #for demo4
-args.image = "./images/demo4.jpg"
-args.labelImg = "./images/demo4.txt"
+args.image = "./images/20200421_182213-1_0.jpg"
+args.labelImg = "./images/20200421_182213-1_0.txt"
 
 args.showText = 0
 args.ps = 1
@@ -91,8 +91,10 @@ with open(args.labelImg, 'rt') as f:
 
 # modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
 # modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
-modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_30000.weights"
+# modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny.cfg"
+# modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_30000.weights"
+modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v2.cfg"
+modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v2_100000.weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
@@ -276,8 +278,10 @@ if (args.image):
         print("Input image file ", args.image, " doesn't exist")
         sys.exit(1)
     cap = cv.VideoCapture(args.image)
-    outputFile = args.image[:-4] + '_yolo_out_py_20200113.jpg'
-    outputFileTxt = args.image[:-4] +'__roi_iou_20200113.txt'
+    # outputFile = args.image[:-4] + '_yolo_out_py_20200113.jpg'
+    # outputFileTxt = args.image[:-4] +'__roi_iou_20200113.txt'
+    outputFile = args.image[:-4] + '_yolo_out_py_20200430.jpg'
+    outputFileTxt = args.image[:-4] + '__roi_iou_20200430.txt'
     outInfoFile = open(outputFileTxt, 'wt')
     ## print (classIndex, xcen, ycen, w, h)
     #outInfoFile.write("%.6f %.6f %.6f %.6f\n" % (xcen, ycen, w, h))

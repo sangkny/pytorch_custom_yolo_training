@@ -1,7 +1,24 @@
 ## Training YOLO with Custom Dataset in PyTorch
 - working on anaconda environment with pyThon36-pyTorch-tf-office.yml  
 - backup dataset!! is located in /workspace/dataset/yolo/data/itms_xxxx(version)
-   ```
+   ```angular2html
+  20200506
+   - itms-dark-yolov3-tiny_3l-v3.cfg
+   - 320 x 320 size
+   - same with the previous one excepet the max iter and learning rate with learning_rate=0.001
+    burn_in=1000
+    max_batches = 10000
+    policy=steps
+    steps=7000,8000
+    scales=.1,.1
+   - minimum loss value is 0.597947 at 8379 iteration
+  
+   - 20200507 : with highGPUs 두 장으로 돌림..
+     training starting with the command as: 
+     ./darknet detector train /workspace/yolo/config/itms-darknet-v1.data /workspace/yolo/config/itms-dark-yolov3-tiny_3l-v3.cfg /workspace/yolo/config/darknet53.conv.74 -gpus 0,1 2>&1 |tee /workspace/yolo/data/itms/itms-train-v3-highGPU.log
+  ```
+  ![high GPUs 2](./logplots/highGpus_darkent.png)
+  ```angular2html
   20200428
    - itms-dark-yolov3-tiny_3l-v2.cfg (batch size = 64 (128: memory error))
    - itms-darknet-v1.data 
@@ -25,7 +42,7 @@
   " ./darknet detector train /workspace/yolo/config/itms-darknet-v1.data 
   /workspace/yolo/config/itms-dark-yolov3-tiny_3l-v1.cfg 
   /workspace/yolo/config/darknet53.conv.74 2>&1 |tee /workspace/yolo/data/itms/itms-train-v1.log"
-  => minimum loss value is 0.298397 at 147754 iteration
+  => minimum loss value is 0.298397 at `147754` iteration
   
   20200117
    - itms-dark-yolov3-tiny_3l.cfg

@@ -22,14 +22,15 @@ args = parser.parse_args()
 confThreshold = 0.5  # Confidence threshold
 nmsThreshold = 0.4  # Non-maximum suppression threshold
 
-inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
-inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
+inpWidth = 320# 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
+inpHeight = 320#32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
 modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.image = "./images/demo.jpg"
+# args.image = "./images/demo.jpg"
+args.image = "./images/20200421_182213-1_0.jpg"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 args.showText = 0
 args.ps = 1
@@ -48,9 +49,11 @@ with open(classesFile, 'rt') as f:
 
 # modelConfiguration = "/data-ssd/sunita/snowman/darknet-yolov3.cfg";
 # modelWeights = "/data-ssd/sunita/snowman/darknet-yolov3_final.weights";
+# modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
+# modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
 
-modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
+modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v2.cfg"
+modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v2_100000.weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)

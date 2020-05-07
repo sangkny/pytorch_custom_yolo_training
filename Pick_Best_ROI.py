@@ -37,8 +37,8 @@ modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 # #args.roiObjects = "./images/demo_v1__roi_iou.txt" #demo_v1__roi_iou_20200113
 # args.roiObjects = "./images/demo_v1__roi_iou_20200113.txt"
 
-args.image = "./images/demo4.jpg"
-args.roiObjects = "./images/demo4__roi_iou_20200113.txt"
+args.image = "./images/20200421_182213-1_0.jpg"
+args.roiObjects = "./images/demo4__roi_iou_20200430.txt"
 
 
 args.saveImg = 1
