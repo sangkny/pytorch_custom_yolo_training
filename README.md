@@ -48,7 +48,7 @@
    - itms-dark-yolov3-tiny_3l.cfg
    - itms-darknet.data
   ``` 
-![20200427](./logplots/itms-train-vi-20200427-train-loss-plot.png)
+![20200427](/logplots/itms-train-vi-20200427-train-loss-plot.png)
 
 
 ##### The contents came mostly from the previous owner. More functions for training Yolo have been added.
