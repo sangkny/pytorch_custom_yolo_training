@@ -1,3 +1,4 @@
+#-*-coding:utf-8-*-
 '''
 Created on Feb 20, 2017
 @author: jumabek
@@ -45,7 +46,7 @@ def avg_IOU(X,centroids):
     return sum/n
 
 def write_anchors_to_file(centroids,X,anchor_file):
-    f = open(anchor_file,'w')
+    f = open(anchor_file,'w', encoding="utf-8")
 
     anchors = centroids.copy()
     print(anchors.shape)
@@ -114,23 +115,27 @@ def main(argv):
                         help='Output anchor directory\n' )  
     parser.add_argument('-num_clusters', default=0, type= int,
                         help='number of clusters\n')
+    parser.add_argument('-num_classes', default=12, type=int,help='number of classes')
     args = parser.parse_args()
 
-    args.filelist = "C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200729_random.txt"
-    args.output_dir = "C:/Users/mmc/workspace/yolo/data/itms/generated_anchors"
+    args.filelist = "/workspace/yolo/data/itms/itms_train_20200729_random.txt"
+    args.output_dir = "/workspace/yolo/data/itms/generated_anchors_random"
     args.num_clusters = 0 # 9 anchors if 0, 1-10 clusters
+    cls_nums = args.num_classes # class number
 
-    prefix = "C:/Users/mmc" # we need this prefix to generate achors in the local place
+    prefix = "" # we need this prefix to generate achors in the local place
+    print(sys.getdefaultencoding())
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
 
-    f = open(args.filelist, encoding="utf-8")
+    f = open(args.filelist, 'rt', encoding="utf-8")
 
     lines = [line.rstrip('\n') for line in f.readlines()]
 
     annotation_dims = []
 
     size = np.zeros((1,1,3))
+    cls_hist = np.zeros((1,cls_nums))
     for line in lines:
         line = line.replace('images','labels')
         #line = line.replace('img1','labels')
@@ -141,14 +146,28 @@ def main(argv):
         line = line.replace('.png','.txt')
         # sangkny fix
         line = prefix+line
+        line = line.encode('utf8')
+        current_line_file = line
+
         print(line)
-        f2 = open(line)
+        f2 = open(line, 'rt', encoding="utf-8")
         for line in f2.readlines():
             line = line.rstrip('\n')
-            w,h = line.split(' ')[3:]            
-            #print(w,h)
+            w,h = line.split(' ')[3:]       # [cls, c_x, c_y, w, h]
+            cls = line.split(' ')[0]
+            cls_hist[0][int(cls)] = cls_hist[0][int(cls)]+1 # histogram
+            if int(cls) == int(cls_nums-1):
+                print('11_etc class: {}'.format(current_line_file))
+                print(line)
+
+            #print("------------class:{},  w:{}, h:{}---------".format(cls, w,h))
             annotation_dims.append(tuple(map(float,(w,h))))
     annotation_dims = np.array(annotation_dims)
+    print('saving number of classes:', cls_hist)
+    cls_hist_file = join(args.output_dir, 'cls_hist_%d.txt'%(cls_nums))
+    clsf = open(cls_hist_file, 'w', encoding="utf-8")
+    for i in range(cls_nums):
+        clsf.write('class {}: {}\n'.format(i, cls_hist[0][i]))
 
     eps = 0.005
 

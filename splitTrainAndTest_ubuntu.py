@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import random
 import os
 import argparse
@@ -12,8 +13,7 @@ args = parser.parse_args()
 
 # temp parameter settings
 # edit the following options to locate the source and target locations for training
-#args.image_dir = "C:/Users/mmc/workspace/yolo/data/itms/images"     # absolute path which contains origial images
-args.image_dir = "E:/Topes_data_related/labelling/11M/images"     # absolute path which contains origial images
+args.image_dir = "/home/ubuntu/workspace/yolo/data/itms/images"     # absolute path which contains origial images
 args.target_dir = "/workspace/yolo/data/itms/images"                # relative path in ubuntu
 args.use_target_dir = True
 args.use_in_windows = False
@@ -28,12 +28,9 @@ def split_data_set(arg):
     # f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200117.txt", 'w', newline=newLineSymbol)
     # f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200117.txt", 'w', newline=newLineSymbol)
 
-    # # -- 20200427 ----
-    # f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200427.txt", 'w', newline=newLineSymbol)
-    # f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200427.txt", 'w', newline=newLineSymbol)
     # -- 20200427 ----
-    f_val = open("C:/Users/mmc/workspace/yolo/data/itms/itms_val_20200801.txt", 'w', encoding="utf-8", newline=newLineSymbol)
-    f_train = open("C:/Users/mmc/workspace/yolo/data/itms/itms_train_20200801.txt", 'w', encoding="utf-8", newline=newLineSymbol)
+    f_val = open("/home/ubuntu/workspace/yolo/data/itms/itms_val_20200729.txt", 'w', encoding="utf-8", newline=newLineSymbol)
+    f_train = open("/home/ubuntu/workspace/yolo/data/itms/itms_train_20200729.txt", 'w', encoding="utf-8", newline=newLineSymbol)
 
     image_dir = arg.image_dir
     target_dir = arg.target_dir # ""
@@ -43,7 +40,7 @@ def split_data_set(arg):
     ind = 0
     data_test_size = int(0.1 * data_size)
     test_array = random.sample(range(data_size), k=data_test_size)
-    # shuffle the files
+    # suffle the files
     files = os.listdir(image_dir)
     np.random.shuffle(files)
     for f in files:

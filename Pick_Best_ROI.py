@@ -28,8 +28,8 @@ nmsThreshold = 0.4  # Non-maximum suppression threshold
 gtObjectNums = 16       # ground truth object numbers in the given demo file
 optRoiNum = 2           # optimal roi numbers
 
-#modelBaseDir = "C:/Users/mmc/workspace/yolo"
-modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
+modelBaseDir = "C:/Users/mmc/workspace/yolo"
+#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 
 # args.image = "./images/demo.jpg"
 # args.roiObjects = "./images/demo__roi_iou_20200113.txt"
@@ -37,9 +37,10 @@ modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 # #args.roiObjects = "./images/demo_v1__roi_iou.txt" #demo_v1__roi_iou_20200113
 # args.roiObjects = "./images/demo_v1__roi_iou_20200113.txt"
 
-args.image = "./images/20200421_182213-1_0.jpg"
-args.roiObjects = "./images/demo4__roi_iou_20200430.txt"
-
+# args.image = "./images/20200421_182213-1_0.jpg" #5526_20190831120000_00011971
+# args.roiObjects = "./images/demo4__roi_iou_20200430.txt"
+args.image = "./images/5526_20190831120000_00011971.jpg" #
+args.roiObjects = "./images/5526_20190831120000_00011971.txt"
 
 args.saveImg = 1
 args.showImgDetail = 1

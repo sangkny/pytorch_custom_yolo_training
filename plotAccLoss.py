@@ -15,8 +15,23 @@ parser.add_argument("--out", type=str, default="./data/training_loss_plot.png", 
 opt = parser.parse_args()
 
 # parameter settings
-opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train-v3.log"
-opt.out = "./logplots/itms-train-v3-20200506-train-loss-plot.png"
+# opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train-v3-full-HighGpu.log" #
+# opt.out = "./logplots/itms-train-v3-20200518-full-train-loss-plot.png"
+
+# --------- 20200729 new data set for yojoo road labelling
+# opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train-v3-3l-highGPU-20200729.log" #"itms-train-full-1-highGPU-20200731.log"
+# opt.out = "./logplots/itms-train-v3-3l-highGPU-20200729-train-loss-plot.png"
+# opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train-full-1-highGPU-20200731.log" #" full version "
+# opt.out = "./logplots/itms-train-full-1-highGPU-20200731-train-loss-plot.png"
+# -------- 20200731 randominzed data set
+# opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train-v3-3l-highGPU-20200729_random.log" #" randomized version "
+# opt.out = "./logplots/itms-train-v3-3l-highGPU-20200729_random-train-loss-plot.png"
+# # --------- 20200804 scratch version for yejoo road labelling dataset
+# opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train-v3-3l-highGPU-20200804_scratch.log" # tiny - 3l
+# opt.out = "./logplots/itms-train-v3-3l-highGPU-202008004_scratch-train-loss-plot.png"
+# --------- 20200806 ne anchor (xx-v3-4.cfg) version for yejoo road labelling dataset
+opt.input = "C:/Users/mmc/workspace/yolo/data/itms/itms-train-v3-3l-highGPU-20200806_tl_150000.log" # tiny - 3l
+opt.out = "./logplots/itms-train-v3-3l-highGPU-202008006_new_anchors-train-loss-plot.png"
 
 logFile = opt.input;
 showImgFlag = opt.showImgFlag

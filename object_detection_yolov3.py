@@ -18,18 +18,19 @@ parser.add_argument('--ps', type=int, default=1, help='stop each image in the sc
 args = parser.parse_args()
 
 # Initialize the parameters
-confThreshold = 0.5  # Confidence threshold
-nmsThreshold = 0.4  # Non-maximum suppression threshold
+confThreshold = 0.1 #0.5  # Confidence threshold
+nmsThreshold = 0.1 #0.4  # Non-maximum suppression threshold
 
 inpWidth = 32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 32*9 # 608     #Height of network's input image # 288(32*9) best
 
 modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
-args.image = modelBaseDir + "/data/itms/images/20180911_115711_cam_0_001110.jpg" #4581_20190902220000_00001501.jpg"
-#args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
+#args.image = modelBaseDir + "/data/itms/images/20180911_115711_cam_0_001110.jpg" #4581_20190902220000_00001501.jpg"
+# args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
 #args.image = "./images/demo2.jpg"
-#args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
+args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
+#args.video = "E:/Topes_data_related/11M-mpg/11M-20200603-222314-야간 단독 정지 보행.mp4"
 args.showText = 1
 args.ps = 1
 
@@ -44,8 +45,11 @@ with open(classesFile, 'rt') as f:
 # modelConfiguration = "/data-ssd/sunita/snowman/darknet-yolov3.cfg";
 # modelWeights = "/data-ssd/sunita/snowman/darknet-yolov3_final.weights";
 
-modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
+# modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
+# modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
+
+modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v3-1.cfg"
+modelWeights = modelBaseDir + "/data/itms/weights/itms-dark-yolov3-tiny_3l-v3-2_100000.weights" #"C:\Users\mmc\workspace\yolo\data\itms\weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
@@ -131,6 +135,7 @@ def postprocess(frame, outs):
 # Process inputs
 winName = 'Deep learning object detection in OpenCV'
 cv.namedWindow(winName, cv.WINDOW_AUTOSIZE)
+m_startFrame = 800;
 
 outputFile = "yolo_out_py.avi"
 if (args.image):
@@ -146,6 +151,7 @@ elif (args.video):
         print("Input video file ", args.video, " doesn't exist")
         sys.exit(1)
     cap = cv.VideoCapture(args.video)
+    cap.set(cv.CAP_PROP_POS_FRAMES, m_startFrame)
     outputFile = args.video[:-4] + '_yolo_out_py.avi'
 else:
     # Webcam input

@@ -30,11 +30,11 @@ parser.add_argument('--debugTextDetail', type=int, default=1, help='flag for dis
 args = parser.parse_args()
 
 # Initialize the parameters
-confThreshold = 0.5  # Confidence threshold
-nmsThreshold = 0.4  # Non-maximum suppression threshold
+confThreshold = 0.1  # Confidence threshold
+nmsThreshold = 0.1  # Non-maximum suppression threshold
 
-inpWidth = 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
-inpHeight = 32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
+inpWidth = 416 #32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
+inpHeight = 416 #32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
 
 modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
@@ -49,8 +49,12 @@ modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
 
 #for demo4
-args.image = "./images/20200421_182213-1_0.jpg"
-args.labelImg = "./images/20200421_182213-1_0.txt"
+# args.image = "./images/20200421_182213-1_0.jpg"
+# args.labelImg = "./images/20200421_182213-1_0.txt"
+args.image = "./images/20180911_113511_cam_0_000090.jpg"
+args.labelImg = "./images/20180911_113511_cam_0_000090.txt"
+# args.image = "./images/5526_20190831120000_00011971.jpg"
+# args.labelImg = "./images/5526_20190831120000_00011971.txt" #
 
 args.showText = 0
 args.ps = 1
@@ -66,7 +70,7 @@ args.roiMouseInput = 1
 # Load names of classes
 classesFile = modelBaseDir + "/data/itms/itms-classes.names"
 classes = None
-with open(classesFile, 'rt') as f:
+with open(classesFile, 'rt', encoding='utf-8') as f:
     classes = f.read().rstrip('\n').split('\n')
 
 # load annotation information
@@ -76,7 +80,7 @@ if not os.path.isfile(args.labelImg):
 
 # get ground truth labels
 GTBoxes = []  # [cx,cy, width, height]
-with open(args.labelImg, 'rt') as f:
+with open(args.labelImg, 'rt', encoding='utf-8') as f:
     gtLabels = f.read().rstrip('\n').split('\n')
     # the is [classid, xcenter, ycenter, width, height] information
     for gtl in gtLabels:
@@ -94,7 +98,7 @@ with open(args.labelImg, 'rt') as f:
 # modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny.cfg"
 # modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_30000.weights"
 modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v2.cfg"
-modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v2_100000.weights"
+modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v3-3_100000.weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
@@ -280,9 +284,9 @@ if (args.image):
     cap = cv.VideoCapture(args.image)
     # outputFile = args.image[:-4] + '_yolo_out_py_20200113.jpg'
     # outputFileTxt = args.image[:-4] +'__roi_iou_20200113.txt'
-    outputFile = args.image[:-4] + '_yolo_out_py_20200430.jpg'
-    outputFileTxt = args.image[:-4] + '__roi_iou_20200430.txt'
-    outInfoFile = open(outputFileTxt, 'wt')
+    outputFile = args.image[:-4] + '_yolo_out_py_20200806.jpg'
+    outputFileTxt = args.image[:-4] + '__roi_iou_20200806.txt'
+    outInfoFile = open(outputFileTxt, 'wt', encoding='utf-8')
     ## print (classIndex, xcen, ycen, w, h)
     #outInfoFile.write("%.6f %.6f %.6f %.6f\n" % (xcen, ycen, w, h))
 
@@ -302,7 +306,7 @@ spatialStep = 20 # shift step (stride)
 spatialStepX = spatialStep # shift step (stride)
 spatialStepY = spatialStep # shift step (stride)
 sizeStep = 32
-overLapRatio = 0.3         # overlap area ratio 10%
+overLapRatio = 0.2         # overlap area ratio 10%
 
 if (not args.image):
     vid_writer = cv.VideoWriter(outputFile, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'), 30,

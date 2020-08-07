@@ -2,20 +2,52 @@
 - working on anaconda environment with pyThon36-pyTorch-tf-office.yml  
 - backup dataset!! is located in /workspace/dataset/yolo/data/itms_xxxx(version)
    ```angular2html
+  20200806
+   ** 테스트 결과, transfer learning을 한 것이 scratch로 한 것보다 효과적이며 특히, 세밀하게 에러가 줄어든 경우 (100000 부타는 에러에 가까운 96000 같은 것이 성능이 더 좋음)
+   --> 왜냐하면 아직 다양한 데이터가 없기 때문인것으로 파악함...
+   --> 그래서 transfer learning + iteration 증가 + anchor 조정으로 실험예정
+   ->> 박스형태가 너무 세로 직사각형만 나오네.. 영상이 줄어들길 때문...인것 같다. 
+   - itms-dark-yolov3-tiny_3l_v3-4.cfg (v2에서 anchor와 iteration 횟수만 바꿈 from 86000부터..시작)
+   - (3l) minimum loss value is 0.345318 at 147659 iteration
+   - (full)  
+  
+  20200804
+   - itms-dark-yolov3-tiny_3l-v3-3.cfg(?)
+   - training from scratch with itms-dark-yolov3-tiny_3l-v3-2.cfg
+   - (3l) minimum loss value is 0.409529 at 97273 iteration (0.425289 at 100000)
+  20200731
+   - itms-dark-yolov3-tiny_3l-v3-2.cfg
+   - randomize dataset and training
+   - cfg 이름 변경은 weights 파일이름 변경 때문   
+   - (full) 
+   - (3l) minimum loss value is 0.31344 at 84952 iteration
+  
+  20200729
+   - itms-dark-yolov3-tiny_3l-v3-1.cfg
+   - 여주에서 취득한 데이터(11M)를 첨가 하여 재 학습하고 있음.
+   - 내용은 아래 20200506 과 같지만 config 파일에서 batch = 128, sub = 4로 수정하여 진행 (속도 때문에 작을 수록 빠름.....)
+   - ./logplots/itms-train-full-1-highGPU-20200731-train-loss-plot.png
+   - (full) minimum loss value is 0.197329 at 92000 iteration
+   - (3l) minimum loss value is 0.314967 at 93688 iteration
   20200506
    - itms-dark-yolov3-tiny_3l-v3.cfg
-   - 320 x 320 size
+   - 416 x 416 size
    - same with the previous one excepet the max iter and learning rate with learning_rate=0.001
     burn_in=1000
-    max_batches = 10000
+    max_batches = 100000
     policy=steps
-    steps=7000,8000
-    scales=.1,.1
-   - minimum loss value is 0.597947 at 8379 iteration
+    steps=20000,80000,90000
+    scales=.1,.1,.1   
+   - minimum loss value is 0.365762 at 77735 iteration (전의 것: - minimum loss value is 0.597947 at 8379 iteration) 
   
-   - 20200507 : with highGPUs 두 장으로 돌림..
+   - 20200507 : with highGPUs 두 장으로 돌림.. (50 hours for 100000 iterations with 256 / 4 batch)
      training starting with the command as: 
      ./darknet detector train /workspace/yolo/config/itms-darknet-v1.data /workspace/yolo/config/itms-dark-yolov3-tiny_3l-v3.cfg /workspace/yolo/config/darknet53.conv.74 -gpus 0,1 2>&1 |tee /workspace/yolo/data/itms/itms-train-v3-highGPU.log
+   - minimum loss value is 0.377617 at 96177 iteration => looks working good.현재는 100000번 weight으로 사용 중
+   - will make a model with normal itms-dark-yolo-v3.cfg
+   - 20200509 : itms-dark-yolov3-full.cfg 로 full yolov3 training 시작 (batch = 256, sub = 64) 끝 20200518 (100000 with 0.19 error)
+	 - ends : minimum loss value is 0.187428 at 87880 iteration. but 100000 has best errors within available weights      
+  
   ```
   ![high GPUs 2](./logplots/highGpus_darkent.png)
   ```angular2html
@@ -84,7 +116,8 @@
     A.	splitTrainAndTest.py    
 	B.	set the configuration (yolo/config) and data (yolo/data/classes.names and train.txt, test.txt with images/labels folders, please see the /workspace/yolo/)
 	C.	In pytorch: train.py for training and converting. However, if you use Docker
-		i.	sudo nvidia-docker run –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash
+		i.	sudo nvidia-docker run (docker run --runtime=nvidia) –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash
+		i.	sudo docker(>19.03+) run (docker run --gpus all) –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash (highGPU env)
 		ii.	inside docker,
 			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file 2>&1 | tee train.log
 	D.	plotAccLoss.py 
@@ -124,11 +157,15 @@ https://towardsdatascience.com/training-yolo-for-object-detection-in-pytorch-wit
 	1에 가까울 수록 좋음
  5. Class : 1에 가까운 값일 수록 학습이 잘 되고 있다는 것
  6. No Obj : 값이 0이 아닌 작은 값이어야 함
- 7. .5R : recall/conut 
+ 7. .5R : recall/count 
  8. .75R : 0.000000
  9. count 
 	현재 subdivision 이미지들에서 positive sample 들을 포함한 이미지의 수
 (.cfg)
  1. num = number of anchors
     ./darknet detector calc_anchors data/hand.data -num_of_clusters 9 -width 416 -height 416 -show 
+
+(detecting smaller objects)
+ 1. https://github.com/pjreddie/darknet/issues/1535
+
 ```
