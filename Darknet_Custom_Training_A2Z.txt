@@ -39,7 +39,9 @@ In vim, use :set ff=unix to convert to Unix; use :set ff=dos to convert to Windo
 	b. edit itms-dark-yolov3.cfg
 		ba. class numbers and 
 		bb. filter numbers aroun [yolo]
-5. use docker to run darknet (sudo nvidia-docker run -it -v ~/workspace:/workspace sangkny/darknet:10.1-cudnn7.1-devel~ /bin/bash)
+5. use docker to run darknet (sudo nvidia-docker run doc -it -v ~/workspace:/workspace sangkny/darknet:10.1-cudnn7.1-devel~ /bin/bash)
+   if docker > 19.03 sudo docker run --gpus all ~
+   else sudo docker run --runtime=nvidia --gpus all ~
 6. if you have file format problems, please refer the above comments.
 
 -------------------------->> Best Description to conduct train/test Yolov3 step-by-step <<------------------------------
@@ -51,7 +53,7 @@ In vim, use :set ff=unix to convert to Unix; use :set ff=dos to convert to Windo
 	C.	In pytorch: train.py for training and converting. However, if you use Docker
 		i.	sudo nvidia-docker run –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash
 		ii.	inside docker,
-			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file 2>&1 | tee train.log
+			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file (-gpus 0,1) 2>&1 | tee train.log
 	D.	plotAccLoss.py 
 		i.	to see the Acc/Loss plot
 	E.	python object_detect_yolov3.py

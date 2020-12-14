@@ -19,8 +19,8 @@ parser.add_argument('--showImgDetailText', type = int, default= 1, help ='flag t
 args = parser.parse_args()
 
 # Initialize the parameters
-confThreshold = 0.1 # 0.5  # Confidence threshold
-nmsThreshold = 0.1 # 0.4  # Non-maximum suppression threshold
+confThreshold = 0.2 # 0.5  # Confidence threshold
+nmsThreshold = 0.2 # 0.4  # Non-maximum suppression threshold
 
 inpWidth = 320# 32*10 #32*10  # 608     #Width of network's input image # 320(32*10)
 inpHeight = 320#32*9 #32*9 # 608     #Height of network's input image # 288(32*9) best
@@ -29,7 +29,8 @@ modelBaseDir = "C:/Users/mmc/workspace/yolo"
 #modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
 #rgs.image = modelBaseDir + "/data/itms/images/4581_20190902220000_00001501.jpg"
 #args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-args.image = "./images/demo.jpg"
+# args.image = "./images/demo.jpg"
+args.image = "./images/6085-20200909-191759-1599646679.mp4008310.jpg"
 #args.image = "./images/11M-20200602-113827-주간 단독 정지-2.mp4000130.jpg"
 #args.image = "./images/20180911_113511_cam_0_000090.jpg"
 #args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
@@ -58,8 +59,10 @@ with open(classesFile, 'rt') as f:
 # modelWeights = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v2_100000.weights"
 # modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v3-1.cfg"
 # modelWeights = modelBaseDir + "/data/itms/weights/itms-dark-yolov3-tiny_3l-v3-2_86000.weights" # v3-2_86000, v3-3_97000
-modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v3-4.cfg"
-modelWeights = modelBaseDir + "/data/itms/weights/itms-dark-yolov3-tiny_3l-v3-4_148000.weights" # v3-2_86000, v3-3_97000 # new anchors
+# modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v3-4.cfg"
+# modelWeights = modelBaseDir + "/data/itms/weights/itms-dark-yolov3-tiny_3l-v3-4_148000.weights" # v3-2_86000, v3-3_97000 # new anchors
+modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v3-2.cfg"
+modelWeights = modelBaseDir + "/data/itms/weights/itms-dark-yolov3-tiny_3l-v3-2_100000.weights" #"C:\Users\mmc\workspace\yolo\data\itms\weights"
 
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)

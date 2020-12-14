@@ -1,60 +1,53 @@
 # This code is written at BigVision LLC. It is based on the OpenCV project. It is subject to the license terms in the LICENSE file found in this distribution and at http://opencv.org/license.html
 
-# Usage example:  python3 object_detection_yolo.py --video=run.mp4
-#                 python3 object_detection_yolo.py --image=bird.jpg
-
+# Usage example:  python3 object_detection_yolo3.py --video=run.mp4
+#                 python3 object_detection_yolo3.py --image=bird.jpg
+import os.path
 import cv2 as cv
 import argparse
 import sys
 import numpy as np
-from random import randint
-import os.path
 
-parser = argparse.ArgumentParser(description='Object Detection using YOLOv3 in OPENCV')
-parser.add_argument('--image', help='Path to image file.')
-parser.add_argument('--video', help='Path to video file.')
-parser.add_argument('--showText', type=int, default=1, help='show text in the ouput.')
+from config import config
+
+parser = argparse.ArgumentParser(description='Object Detection using YOLOv3/YOLOv4 in OPENCV')
+parser.add_argument('--image', help='Full path to image file.')
+parser.add_argument('--video', help='Full path to video file.')
+parser.add_argument('--showText', type=int, default=1, help='show text in the output.')
 parser.add_argument('--ps', type=int, default=1, help='stop each image in the screen.')
 args = parser.parse_args()
 
 # Initialize the parameters
-confThreshold = 0.1 #0.5  # Confidence threshold
-nmsThreshold = 0.1 #0.4  # Non-maximum suppression threshold
+args.image      = config.TEST_IMAGE_PATH
+args.video      =  config.TEST_VIDEO_PATH # "E:/Topes_data_related/시나리오 영상/시나리오 영상/20200909PM/6085-20200909-170439-1599638679.mp4"
+args.showText = config.SHOW_TEXT_FLAG #1
+args.ps = config.PS_FLAG # 1
 
-inpWidth = 32*10  # 608     #Width of network's input image # 320(32*10)
-inpHeight = 32*9 # 608     #Height of network's input image # 288(32*9) best
+# refine the inferences
+confThreshold   = config.CONF_THRES # 0.1 #0.5  # Confidence threshold
+nmsThreshold    = config.NMS_THRES #0.1 #0.4  # Non-maximum suppression threshold
 
-modelBaseDir = "C:/Users/mmc/workspace/yolo"
-#modelBaseDir = "C:/Users/SangkeunLee/workspace/yolo"
-#args.image = modelBaseDir + "/data/itms/images/20180911_115711_cam_0_001110.jpg" #4581_20190902220000_00001501.jpg"
-# args.image = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180911_113611_cam_0_bg1x.jpg"
-#args.image = "./images/demo2.jpg"
-args.video = "D:/LectureSSD_rescue/project-related/road-weather-topes/code/ITMS/TrafficVideo/20180912_192557_cam_0.avi"
-#args.video = "E:/Topes_data_related/11M-mpg/11M-20200603-222314-야간 단독 정지 보행.mp4"
-args.showText = 1
-args.ps = 1
+# modes inference size regardless of input image size
+inpWidth        = config.INPWIDTH # 32*10  # 608     #Width of network's input image # 320(32*10)
+inpHeight       = config.INPHEIGHT # 32*9 # 608     #Height of network's input image # 288(32*9) best
 
-# Load names of classes
-classesFile = modelBaseDir + "/data/itms/itms-classes.names"
+# model base directory
+modelBaseDir    = config.ModelBaseDir # "C:/Users/mmc/workspace/yolo"
+
+# Load names of classes from a file
+classesFile = os.path.sep.join([modelBaseDir, config.CLASSES_FILE])
 classes = None
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
 
-# Give the configuration and weight files for the model and load the network using them.
+# model configuration and weights paths
+modelConfiguration = os.path.sep.join([modelBaseDir, config.Model_Configuration])
+modelWeights = os.path.sep.join([modelBaseDir, config.Model_Weights])
 
-# modelConfiguration = "/data-ssd/sunita/snowman/darknet-yolov3.cfg";
-# modelWeights = "/data-ssd/sunita/snowman/darknet-yolov3_final.weights";
-
-# modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3.cfg"
-# modelWeights = modelBaseDir + "/config/itms-dark-yolov3_final_20200113.weights"
-
-modelConfiguration = modelBaseDir + "/config/itms-dark-yolov3-tiny_3l-v3-1.cfg"
-modelWeights = modelBaseDir + "/data/itms/weights/itms-dark-yolov3-tiny_3l-v3-2_100000.weights" #"C:\Users\mmc\workspace\yolo\data\itms\weights"
-
+# load a given model
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
 net.setPreferableTarget(cv.dnn.DNN_TARGET_OPENCL_FP16)
-
 
 # Get the names of the output layers
 def getOutputsNames(net):
@@ -106,8 +99,9 @@ def postprocess(frame, outs):
             # if scores[classId]>confThreshold:
             confidence = scores[classId]
             if detection[4] > confThreshold:
-                print(detection[4], " - ", scores[classId], " - th : ", confThreshold)
-                print(detection)
+                if(args.showText):
+                    print(detection[4], " - ", scores[classId], " - th : ", confThreshold)
+                    print(detection)
             if confidence > confThreshold:
                 center_x = int(detection[0] * frameWidth)
                 center_y = int(detection[1] * frameHeight)
@@ -135,7 +129,7 @@ def postprocess(frame, outs):
 # Process inputs
 winName = 'Deep learning object detection in OpenCV'
 cv.namedWindow(winName, cv.WINDOW_AUTOSIZE)
-m_startFrame = 800;
+m_startFrame = np.maximum(0, config.Video_Start_Frame)
 
 outputFile = "yolo_out_py.avi"
 if (args.image):
@@ -184,14 +178,17 @@ while cv.waitKey(1) < 0:
     net.setInput(blob)
     # Runs the forward pass to get output of the output layers
     outs = net.forward(getOutputsNames(net))
-    print(getOutputsNames(net))
+    if args.showText:
+        print(getOutputsNames(net))
 
     postprocess(frame, outs)
 
     # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
     t, _ = net.getPerfProfile()
     label = 'Inference time: %.2f ms' % (t * 1000.0 / cv.getTickFrequency())
-    print(label)
+    if args.showText:
+       print(label)
+
     cv.putText(frame, label, (0, 15), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
     # Write the frame with the detection boxes

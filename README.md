@@ -2,6 +2,10 @@
 - working on anaconda environment with pyThon36-pyTorch-tf-office.yml  
 - backup dataset!! is located in /workspace/dataset/yolo/data/itms_xxxx(version)
    ```angular2html
+  20200929
+   ** 합천 데이터를 추가하고 training 진행.
+   --> 
+   
   20200806
    ** 테스트 결과, transfer learning을 한 것이 scratch로 한 것보다 효과적이며 특히, 세밀하게 에러가 줄어든 경우 (100000 부타는 에러에 가까운 96000 같은 것이 성능이 더 좋음)
    --> 왜냐하면 아직 다양한 데이터가 없기 때문인것으로 파악함...
@@ -119,7 +123,7 @@
 		i.	sudo nvidia-docker run (docker run --runtime=nvidia) –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash
 		i.	sudo docker(>19.03+) run (docker run --gpus all) –it –v ~/workspace:/workspace –-ipc=host sangkny/darknet:~ /bin/bash (highGPU env)
 		ii.	inside docker,
-			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file 2>&1 | tee train.log
+			1.	./darknet detector train /path/to/xxx.data /path/to/xxx.cfg .path/to/xxx_pretrained_weights_or_intermediate_weights_file -gputs 0,1 2>&1 | tee train.log
 	D.	plotAccLoss.py 
 		i.	to see the Acc/Loss plot
 	E.	python object_detect_yolov3.py
