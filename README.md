@@ -2,6 +2,9 @@
 - working on anaconda environment with pyThon36-pyTorch-tf-office.yml  
 - backup dataset!! is located in /workspace/dataset/yolo/data/itms_xxxx(version)
    ```angular2html
+  20201215
+   ** 이전에 pretrained 된 모델에 100000부터 200000까지 재 트레이닝.. with itms-dark-yolo-tiny_3l-v3-2.cfg (오리지널에 + rotation = 30 로 한 것), 참고로 new anchors 는 적용 안함. 그리고, dark:yolov4 로 함...
+   
   20200929
    ** 합천 데이터를 추가하고 training 진행.
    --> 

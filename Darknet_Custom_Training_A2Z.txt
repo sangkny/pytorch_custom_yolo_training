@@ -1,4 +1,13 @@
+
 last updated on 20200117
+
+update as of 20201215 in HighGPU. 
+ sudo docker run --gpus all -it -v ~/workspace:/workspace --ipc=host sangkny/darknet:yolov4 /bin/bash
+
+yolov4 에서는 -dont_show 옵션을 붙여야 문제가 없음 (서버에서 실행시)
+ ./darknet detector train /workspace/yolo/config/itms-darknet-v1.data /workspace/yolo/config/itms-dark-yolov3-tiny_3l-v3.cfg /workspace/yolo/config/darknet53.conv.74 -gpus 0,1 2>&1 |tee /workspace/yolo/data/itms/itms-train-v3-highGPU.log
+
+
 ------------------->>>> yolov3 train options <<<<-------------------------------
 ./darknet detector train /path/to/snowman/darknet.data /path/to/snowman/darknet-yolov3.cfg ./darknet53.conv.74 > /path/to/snowman/train.log
 

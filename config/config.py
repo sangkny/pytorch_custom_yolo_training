@@ -12,8 +12,8 @@ Video_Start_Frame = (21-4)*60*30+(2-39)*30 # compute the first starting location
 
 # model base dir
 ModelBaseDir = "C:/Users/mmc/workspace/yolo"
-TEST_IMAGE_PATH =""#"C:/Users/mmc/workspace/yolo/data/itms/images/demo2.jpg"
-TEST_VIDEO_PATH = "E:/Topes_data_related/시나리오 영상/시나리오 영상/20200909PM/6085-20200909-170439-1599638679.mp4"
+TEST_IMAGE_PATH ="C:/Users/mmc/workspace/yolo/data/itms/images/demo2.jpg"
+TEST_VIDEO_PATH = ""#"E:/Topes_data_related/시나리오 영상/시나리오 영상/20200909PM/6085-20200909-170439-1599638679.mp4"
 SHOW_TEXT_FLAG = 1
 PS_FLAG = 1
 
